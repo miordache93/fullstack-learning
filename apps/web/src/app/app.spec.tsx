@@ -1,19 +1,10 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import App from './app';
+import { App } from './app';
 
-describe('App', () => {
-  it('renders navigation', () => {
-    render(
-      <QueryClientProvider client={new QueryClient()}>
-        {/* WHAT: Start the declarative test router at a non-default route without browser history. */}
-        <MemoryRouter initialEntries={['/architecture']}>
-          <App />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
-    expect(screen.getByRole('navigation')).toBeTruthy();
-    expect(screen.getByText('Full-stack learning lab')).toBeTruthy();
-  });
+// CHECK: Preserve one scaffold smoke test while lesson-specific tests are still absent.
+it('renders the workshop starter', () => {
+  render(<App />);
+  expect(
+    screen.getByRole('heading', { name: /workshop starter/i }),
+  ).toBeTruthy();
 });

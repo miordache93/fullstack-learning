@@ -1,77 +1,63 @@
 # Nx full-stack learning lab
 
-A minimal UI and production-minded curriculum covering React, Node.js, Prisma/PostgreSQL, Mongoose/MongoDB, Docker, GitHub Actions, and AWS.
+This branch is a deliberately small, buildable Nx starter. It contains one React app, one Node/Express app, one frontend library, and one backend library—but none of the lesson solutions.
 
-Start with [FULLSTACK_TUTORIAL.md](./FULLSTACK_TUTORIAL.md). It contains the lesson order, annotated application examples, learner-authored infrastructure exercises, AWS console walkthroughs, verification checks, and primary sources. The `WHAT`, `WHY`, `BOUNDARY`, `CHECK`, and `TODO` comments are teaching aids: type the implementation yourself and keep only non-obvious decision comments in production-style code.
+Start with [FULLSTACK_TUTORIAL.md](./FULLSTACK_TUTORIAL.md). It gives you the dependency order, exact commented increments to type, failure experiments, and exit checks for React, Node.js, Prisma/PostgreSQL, Mongoose/MongoDB, Docker, GitHub Actions, and AWS.
 
-## Start the learning path
+## Prove the starter
 
 ```bash
-cp .env.example .env
+# WHAT: Install exactly the dependency versions recorded for the workshop.
 npm ci
+# CHECK: Prove the four empty project shells still lint, test, type-check, and build.
+npm run check
+# WHAT: Run the minimal React and API processes before adding lesson behavior.
 npm run dev
 ```
 
-Open `http://localhost:4200`. API liveness should work while database readiness initially fails; Lesson 0.3 then asks you to create `compose.yaml` yourself and add PostgreSQL one concern at a time.
-
-`compose.yaml`, `.dockerignore`, both application Dockerfiles, the Nginx configuration, and the MongoDB topology script are intentionally absent. Lessons 0.3, 3B.0, 4.2, and 4.3 provide exact, commented increments for you to type and verify—without placing the completed files in the starter.
-
-After building the PostgreSQL service in Lesson 0.3, run local application processes against it:
+Open `http://localhost:4200`. In another terminal, prove the only initial API route:
 
 ```bash
-docker compose up database -d
-npm run db:migrate:deploy
-npm run db:seed
-npm run prisma:generate
-npm run dev
+# CHECK: This succeeds because it is the generated-style starter route.
+curl -i http://localhost:3000/api
+# CHECK: This returns 404 because you have not written task routing yet.
+curl -i http://localhost:3000/api/tasks
 ```
 
-The host web app is at `http://localhost:4200` and the host API at `http://localhost:3000`.
+There is intentionally no database configuration, Prisma schema, application route, Query hook, Zustand store, shared component, repository, Dockerfile, Compose file, workflow, or AWS template on this branch. You create each artifact when its lesson introduces the need and explains every meaningful line.
 
-After writing the migration, image, and service files in Part 4, smoke-test the stack you assembled:
+## Use cumulative learning branches
 
-```bash
-# CHECK: Build the images and reconcile the final dependency graph you created.
-docker compose up --build -d --wait
-# CHECK: Cross Nginx, the API readiness boundary, and PostgreSQL through one URL.
-curl http://localhost:8080/api/health/ready
-```
-
-For the optional MongoDB/Mongoose path, run the one-node replica-set lab and the
-same API on port 3001:
-
-```bash
-# CHECKPOINT: Use this convenience script only after building `api-mongo` in Lesson 4.3.
-# WHAT: Initialize MongoDB, its replica set, indexes, and the Mongoose-backed API.
-npm run docker:mongo
-# CHECK: The response identifies the adapter selected only at process composition.
-curl http://localhost:3001/api/health/ready
-```
-
-To run the API on the host instead, start `mongodb` and `mongo-setup`, then set
-`DATABASE_CLIENT=mongoose` using the documented `MONGODB_URL` from `.env.example`.
-
-Before any deployment, rerun both production and full dependency audits and read the time-stamped risk disposition in the tutorial; advisory state changes over time.
-
-## Verify
-
-```bash
-npm run prisma:validate
-npm run prisma:generate
-npm run lint
-npm run test
-npm run typecheck
-npm run build
-npm run format:check
-```
-
-## Projects
+Start each lesson branch from the previous completed lesson, not from `workshop/start` again:
 
 ```text
-apps/web              React app
-apps/api              Express API
-libs/frontend/ui      shared React components
-libs/backend/core     domain, HTTP, persistence ports/adapters, S3, workers
-prisma                schema, migration history, learning seed
-infra/mongodb         replica-set and index setup for MongoDB labs
+workshop/start
+└── lesson/01-domain-contract
+    └── lesson/02-http-e2e
+        └── lesson/03-react-routing-ui
+            └── lesson/04-query-and-state
+                └── lesson/05-postgres-prisma
+                    └── lesson/06-concurrency-transactions
+                        └── lesson/07-mongodb-mongoose
+                            └── lesson/08-node-hardening-workers-s3
+                                └── lesson/09-container-images
+                                    └── lesson/10-compose-runtime
+                                        └── lesson/11-ci-cd
+                                            └── lesson/12-aws
 ```
+
+For example, `lesson/06-concurrency-transactions` includes the complete implementation from lessons 01–05 and adds only its own increment. The preserved local `solution/reference` branch keeps the facilitator implementation for recovery; avoid reading it until you have attempted the relevant exit check.
+
+## Files you will create
+
+```text
+apps/web              React composition, routes, pages, Query and Zustand
+apps/api              process composition and lifecycle
+libs/frontend/ui      shared accessible presentation components
+libs/backend/core     domain, HTTP, persistence adapters, S3 and workers
+prisma                schema, migrations, and learning seed
+infra                 database, AWS, and operational exercises
+.github/workflows     CI and deployment workflows
+```
+
+The Prisma, database, Docker, and deployment scripts in `package.json` are future lesson entry points. They are expected to fail until you create the files they require. `npm run check` is the starter proof that must remain green at every checkpoint.

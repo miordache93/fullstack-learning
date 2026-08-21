@@ -17,7 +17,7 @@
     "test": "nx run-many -t test",
     "lint": "nx run-many -t lint",
     "typecheck": "nx run-many -t typecheck",
-    "check": "nx run-many -t lint,test,typecheck,build",
+    "check": "nx run-many -t lint,test,typecheck && nx run-many -t build",
     "format": "nx format:write",
     "format:check": "nx format:check",
     "docker:up": "docker compose up --build",

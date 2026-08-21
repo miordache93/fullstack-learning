@@ -28,14 +28,14 @@ nx-fullstack-learning/
 ├── libs/
 │   ├── frontend/ui/                 # Shared presentational components
 │   └── backend/core/                # Domain, HTTP policy, DB and S3 adapters
-├── infra/
-│   ├── postgres/                    # Advanced plain-SQL labs
-│   ├── mongodb/                     # Replica-set and index setup for MongoDB labs
-│   └── aws/                         # Task definition, OIDC and budget templates
-├── prisma/                          # ORM schema, generated migration history and seed SQL
-├── prisma.config.ts                 # Prisma CLI paths and database URL boundary
-├── .github/workflows/               # CI and deployment
-├── compose.yaml                       # Absent initially; you create it in Lesson 0.3
+├── infra/                           # Empty/planned until database and AWS lessons
+│   ├── postgres/                    # You create advanced plain-SQL labs
+│   ├── mongodb/                     # You create replica-set/index setup
+│   └── aws/                         # You create task, OIDC, and budget templates
+├── prisma/                          # Absent initially; you author it in Branch 05
+├── prisma.config.ts                 # Absent initially; you author it in Branch 05
+├── .github/workflows/               # Absent initially; you author it in Branch 11
+├── compose.yaml                     # Absent initially; you begin it in Lesson 0.3
 └── FULLSTACK_TUTORIAL.md
 ```
 
@@ -67,12 +67,12 @@ Before the AWS lessons, create a budget. A budget alerts you; it does not automa
 
 ## How to use the curriculum
 
-The numbered parts are the complete reference path. For self-study, complete them in order the first time. For a summit, use the curated path below; attempting all 62 lessons in two days would turn the event into a typing race.
+This branch is an implementation starter, not a reference application. Only the Nx project shells compile initially. Follow the dependency-ordered exercise ladder below; the numbered Parts are topic chapters you visit in the order named by each integrated lab.
 
 Read each lesson through five lenses. Some are expressed inline rather than repeated as headings:
 
 1. **Outcome** — what capability you add.
-2. **Read** — the working files to inspect.
+2. **Create** — the absent file or smallest increment you must type.
 3. **Why** — the engineering reason, not just syntax.
 4. **Lab** — a change or command to run.
 5. **Exit check** — evidence that you understood it.
@@ -89,18 +89,19 @@ The core track assumes an attendee can build a small React form, write an `async
 - **Senior challenge:** measure, break, recover, or defend the design under concurrency and failure.
 - **Expert extension:** make or justify a distributed-systems and operational tradeoff. These are breakout or take-home exercises, not hidden core requirements.
 
-The order is intentional: establish host processes, build the first Compose dependency yourself, implement one vertical slice, prove database semantics, compare the second adapter, measure failure/performance, then build application images, automate, and deploy. A participant may inspect later reference files, but should not copy them before attempting the lab.
+The order is intentional: prove the Nx shells, implement a database-free HTTP contract, connect React to that real API, then add PostgreSQL, MongoDB, performance/security, images, automation, and cloud. Do not follow the Part numbers as a waterfall; use the integrated lab numbers as the build order.
 
-The starter workspace intentionally has no `compose.yaml`, `.dockerignore`, application Dockerfiles, or Nginx configuration. You create each file in the named exercise and carry it forward. If a facilitator maintains a private solution branch, it must remain separate from the attendee workspace and should be revealed only after the relevant exit check.
+The starter intentionally omits lesson implementations: routes, pages, Query hooks, Zustand stores, shared components, backend policy, validation, repositories, database schema, Compose, Dockerfiles, workflows, and cloud templates. You create each one from the commented lesson increment. The local `solution/reference` branch preserves the prior implementation for facilitator recovery; do not inspect it before an exit check.
 
 ### Curriculum triage
 
 | Area             | Required core                     | Senior / expert extension                                    | Dependency                              |
 | ---------------- | --------------------------------- | ------------------------------------------------------------ | --------------------------------------- |
 | Nx and host run  | 0.1–0.2                           | Project-boundary rules and custom generators                 | None                                    |
-| Compose database | 0.3                               | Custom networks, resource limits, and secret providers       | Host API liveness works                 |
-| React            | 1.1–1.4, 1.6                      | 1.5 polling; 1.7 virtualization                              | Runnable reference API from Part 0      |
-| Node.js          | 2.1–2.5, 2.8–2.9, 2.11, 2.13      | 2.6 concurrency, 2.10 TLS, 2.12 S3; 2.7 worker pool          | TypeScript and HTTP basics              |
+| First E2E slice  | 2.3, 2.5 port/service, 2.2, 2.1   | Idempotency and contract tests                               | Nx host shells                          |
+| React            | 1.1–1.4, 1.6                      | 1.5 polling; 1.7 virtualization                              | Working in-memory HTTP API              |
+| Compose database | 0.3A–0.3C                         | Custom networks, resource limits, and secret providers       | None; schema is added later             |
+| Node.js          | 2.4–2.13                          | TLS, S3, concurrency, worker pool, hardening                 | First in-memory vertical slice          |
 | PostgreSQL       | 3.1–3.4, 3.8                      | 3.5 pooling/maintenance, 3.7 replicas; 3.6 sharding decision | Repository port from 2.5                |
 | MongoDB          | 3B.1–3B.4, 3B.8                   | 3B.5–3B.6; 3B.7 shard-key decision                           | Repository contract and transaction lab |
 | Docker images    | 4.1–4.3                           | 4.4 incident triage                                          | Learner-built database Compose file     |
@@ -129,11 +130,11 @@ These are the summit's integrated exercises. The smaller labs inside each lesson
 | --: | ------------------------------------- | -------------------------: | ------------------------------------- | ------------------------------------------------------------------ |
 |   0 | Tool-only preflight                   | 20–30 min before the event | Prerequisites                         | Versions and `npm ci`; no completed Compose stack                  |
 |   1 | Recreate the Nx boundaries            |                     35 min | 0.1                                   | Project graph and a second cached task run                         |
-|   2 | Prove the host process skeleton       |                     30 min | 0.2                                   | Web shell, API liveness, and expected readiness failure            |
-|   3 | Build PostgreSQL Compose from nothing |                     60 min | 0.3                                   | Authenticated query, health transition, persistence proof          |
-|   4 | Build the React read path             |                     60 min | 1.1–1.4, 1.6                          | Lazy chunk, query-key trace, accessible component test             |
-|   5 | Define the HTTP/domain contract       |                     60 min | 2.1–2.3                               | In-memory service test plus valid/invalid request transcript       |
-|   6 | Add PostgreSQL persistence            |                     75 min | 2.4–2.5, 3.1                          | Prisma CRUD test, parameterized raw query, query plan              |
+|   2 | Prove the host process skeleton       |                     30 min | 0.2                                   | Starter web page and generated-style API response                  |
+|   3 | Define domain and in-memory contract  |                     75 min | 2.3, 2.5 port/service                 | Repository contract and service tests without a database           |
+|   4 | Expose the first HTTP CRUD slice      |                     75 min | 2.2, then 2.1 composition             | Valid/invalid HTTP transcript and centralized error response       |
+|   5 | Build React against the real API      |                     90 min | 1.1–1.4, 1.6                          | Lazy route, shared component test, query-key and mutation trace    |
+|   6 | Build PostgreSQL and Prisma           |                    105 min | 0.3, 2.4, 3.1                         | Health/persistence proof, migration, Prisma CRUD and raw query     |
 |   7 | Defend concurrent completion          |                     60 min | 2.8, 3.2, 2.13                        | One winner, one HTTP 409, and rollback evidence                    |
 |   8 | Extend Compose for MongoDB            |                     60 min | 3B.0–3B.3                             | Replica-set state, contract evidence, rollback proof               |
 |   9 | Measure one bottleneck                |                     45 min | Choose 1.7, 2.6–2.7, 3.3–3.5, or 3B.5 | Before/after latency, plan, DOM count, or worker result            |
@@ -204,7 +205,7 @@ Senior challenge: repeat with the MongoDB adapter and explain which observations
 
 ### Comment-first learning contract
 
-You—not the tutorial—should write most of the implementation. Container artifacts and the MongoDB topology script are intentionally absent from the workspace. Their lessons first explain the decision, then provide the exact small block to type, and finally require a success check plus a failure experiment before the next block is introduced.
+You—not the starter branch—should contain most of the implementation. Every lesson artifact is intentionally absent from the workspace: application routes, hooks, stores, components, domain policy, repositories, database files, container artifacts, workflows, and cloud templates. The tutorial explains the decision, gives you an exact small block to type, and requires a success check plus a failure experiment before the next block. The code being visible in this workbook is the teaching material; it is not preinstalled application code.
 
 Code samples are intentionally more heavily commented than ordinary production code. Most meaningful lines carry one of these teaching signals:
 
@@ -218,20 +219,2826 @@ Comments are attached to meaningful statements, not closing braces or self-expla
 
 Shell, TypeScript, and SQL examples use their native comment syntax and remain copy-pasteable where the lesson is demonstrating an application concept. Compose, Dockerfile, Nginx, and MongoDB-topology code is given as cumulative, commented increments rather than as files already present in the scaffold. Type and merge those increments yourself; never paste explanatory ellipsis lines. Strict JSON cannot contain comments; each JSON example therefore has a field-by-field explanation immediately before it. Never paste pseudo-comments into a production JSON document.
 
-Suggested checkpoints:
+Use cumulative lesson branches. Each child starts from its completed parent and therefore contains all earlier behavior:
 
 ```text
-checkpoint/01-workspace-host
-checkpoint/02-postgres-compose
-checkpoint/03-react-data
-checkpoint/04-api-crud
-checkpoint/05-postgres-concurrency
-checkpoint/06-mongodb-compose-adapter
-checkpoint/07-container-images
-checkpoint/08-complete-compose
-checkpoint/09-ci
-checkpoint/10-aws
+workshop/start
+└── lesson/01-domain-contract
+    └── lesson/02-http-e2e
+        └── lesson/03-react-routing-ui
+            └── lesson/04-query-and-state
+                └── lesson/05-postgres-prisma
+                    └── lesson/06-concurrency-transactions
+                        └── lesson/07-mongodb-mongoose
+                            └── lesson/08-node-hardening-workers-s3
+                                └── lesson/09-container-images
+                                    └── lesson/10-compose-runtime
+                                        └── lesson/11-ci-cd
+                                            └── lesson/12-aws
 ```
+
+Create the next branch only after the current exit check passes:
+
+```bash
+# CHECK: Confirm the current lesson is green before it becomes the next baseline.
+npm run check
+# WHAT: Save a small, explainable checkpoint containing your own implementation.
+git add --all && git commit -m "lesson 01: define the task domain contract"
+# WHAT: Branch from that commit, so lesson 02 includes lesson 01 by construction.
+git switch -c lesson/02-http-e2e
+```
+
+Never create every `lesson/*` branch directly from `workshop/start`; that would make dependent lessons lose their prerequisites. Use the local `solution/reference` only for facilitator recovery after an honest attempt, then return to your own branch and retype the behavior from memory.
+
+### Exact application build spine
+
+The topic chapters below contain the deep explanations and senior/expert extensions. For the first end-to-end implementation, use this build spine instead of reading Parts 1 and 2 top-to-bottom: **domain and service → HTTP API → shared UI and routing → Query and Zustand → Prisma → concurrency → Mongoose**. This prevents React from being built against imaginary endpoints and prevents either ORM from becoming the domain model.
+
+Each file block is a checkpoint, not a repository answer. Create the named file, type the block, run its focused check, and make the named change yourself before moving on. Most meaningful statements are deliberately commented here; after the summit, remove comments that only restate syntax and keep comments that defend boundaries or invariants.
+
+#### Branch 01 — Build the domain contract without a database
+
+Create `lesson/01-domain-contract` from `workshop/start`. The reason for starting in the backend library is important: business behavior should be testable without HTTP, React, Prisma, Mongoose, Docker, or AWS.
+
+The root workspace already downloaded Zod for later lessons. Declare it at the project boundary so Nx can verify that the backend library owns what it imports:
+
+```bash
+# WHAT: Declare Zod as a runtime dependency of the backend library package.
+npm pkg set 'dependencies.zod=^4.4.3' --workspace @nx-fullstack-learning/backend-core
+```
+
+Create `libs/backend/core/src/lib/tasks/task.schema.ts`:
+
+```ts
+// BOUNDARY: Zod preserves runtime checks after TypeScript types disappear.
+import { z } from 'zod';
+
+// BOUNDARY: Validate route identities before the service receives them.
+export const TaskIdSchema = z.object({ id: z.uuid() });
+// WHAT: Reuse one accepted vocabulary at HTTP and persistence boundaries.
+export const PrioritySchema = z.enum(['low', 'medium', 'high']);
+
+// BOUNDARY: Convert an untrusted create body into a domain command.
+export const CreateTaskSchema = z.object({
+  // WHY: Normalization makes whitespace-only titles invalid.
+  title: z.string().trim().min(1).max(200),
+  // WHY: Bound optional input before a database or log receives it.
+  description: z.string().trim().max(2_000).optional(),
+  // WHY: The server, not every caller, owns the default.
+  priority: PrioritySchema.default('medium'),
+});
+
+// BOUNDARY: A patch may change selected fields but must carry a concurrency token.
+export const UpdateTaskSchema = z
+  .object({
+    // WHAT: Every mutable field is optional in a partial update.
+    title: z.string().trim().min(1).max(200).optional(),
+    // WHY: `null` explicitly clears a description; `undefined` leaves it alone.
+    description: z.string().trim().max(2_000).nullable().optional(),
+    // WHAT: Reuse the same finite priority vocabulary.
+    priority: PrioritySchema.optional(),
+    // WHAT: Permit the completion state to change.
+    done: z.boolean().optional(),
+    // WHY: Reject stale writes later with optimistic concurrency.
+    version: z.number().int().positive(),
+  })
+  .refine(
+    // CHECK: A version by itself is not a useful patch.
+    (input) => Object.entries(input).some(([property, value]) => property !== 'version' && value !== undefined),
+    // WHAT: Return one stable validation message for an empty patch.
+    { message: 'Provide at least one field to update' },
+  );
+
+// BOUNDARY: Completion also requires the version the caller observed.
+export const CompleteTaskSchema = z.object({
+  version: z.number().int().positive(),
+});
+
+// BOUNDARY: Query strings are strings until this parser deliberately transforms them.
+export const ListTasksSchema = z.object({
+  // WHY: Bound page size to protect memory and response latency.
+  limit: z.coerce.number().int().min(1).max(500).default(50),
+  // WHAT: Start with offset pagination before the later cursor exercise.
+  offset: z.coerce.number().int().min(0).default(0),
+  // WHY: Avoid `z.coerce.boolean()` because the string "false" is truthy in JavaScript.
+  done: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
+  // WHY: Normalize and bound the optional search term.
+  q: z.string().trim().max(100).optional(),
+});
+
+// WHAT: Derive compile-time command types from runtime authorities.
+export type CreateTaskInput = z.infer<typeof CreateTaskSchema>;
+export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
+export type ListTasksInput = z.infer<typeof ListTasksSchema>;
+```
+
+Create `libs/backend/core/src/lib/tasks/task.repository.ts`:
+
+```ts
+// WHAT: Import only domain command types, never an ORM-generated record.
+import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
+
+// BOUNDARY: This stable domain shape is shared by every persistence adapter.
+export type Task = {
+  id: string;
+  title: string;
+  description: string | null;
+  done: boolean;
+  priority: 'low' | 'medium' | 'high';
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// WHY: Preserve missing versus stale-write semantics across database clients.
+export type UpdateResult = { kind: 'updated'; task: Task } | { kind: 'missing' } | { kind: 'conflict' };
+
+// BOUNDARY: Business policy depends on capabilities, not Prisma or Mongoose APIs.
+export interface TaskRepository {
+  // WHAT: Return a bounded page plus its total count.
+  list(input: ListTasksInput): Promise<{ data: Task[]; total: number }>;
+  // WHAT: Model ordinary absence explicitly.
+  findById(id: string): Promise<Task | null>;
+  // WHAT: Persist a validated create command.
+  create(input: CreateTaskInput): Promise<Task>;
+  // WHAT: Preserve optimistic-concurrency outcomes.
+  update(id: string, input: UpdateTaskInput): Promise<UpdateResult>;
+  // WHY: Give adapters a transaction-aware completion operation.
+  complete(id: string, version: number): Promise<UpdateResult>;
+  // WHAT: Translate engine-specific delete counts to one boolean.
+  delete(id: string): Promise<boolean>;
+}
+```
+
+Create `libs/backend/core/src/lib/tasks/in-memory-task.repository.ts`. This is not throwaway mocking: it lets you prove the port and complete an E2E slice before infrastructure obscures mistakes.
+
+```ts
+// WHAT: Use platform UUID generation so identity matches both future adapters.
+import { randomUUID } from 'node:crypto';
+// WHAT: Import the domain port and result types this adapter must satisfy.
+import type { Task, TaskRepository, UpdateResult } from './task.repository.js';
+// WHAT: Import validated command shapes, not HTTP request objects.
+import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
+
+// WHAT: Implement the same contract without a database process.
+export class InMemoryTaskRepository implements TaskRepository {
+  // WHY: Keep mutable records private so callers cannot bypass version checks.
+  private readonly records = new Map<string, Task>();
+
+  async list(input: ListTasksInput) {
+    // WHAT: Work on a new array rather than exposing the internal Map.
+    const matches = [...this.records.values()]
+      // WHAT: Apply the optional completion filter when supplied.
+      .filter((task) => input.done === undefined || task.done === input.done)
+      // WHAT: Use the shared case-insensitive literal-substring contract.
+      .filter((task) => !input.q || task.title.toLowerCase().includes(input.q.toLowerCase()))
+      // WHY: Make pagination deterministic when timestamps collide.
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || left.id.localeCompare(right.id));
+
+    // WHAT: Slice only after filtering and sorting, as the databases must later do.
+    const data = matches.slice(input.offset, input.offset + input.limit);
+    // BOUNDARY: Return copies so a test or service cannot mutate stored state.
+    return { data: data.map((task) => ({ ...task })), total: matches.length };
+  }
+
+  async findById(id: string) {
+    // WHAT: Return a defensive copy or explicit absence.
+    const task = this.records.get(id);
+    return task ? { ...task } : null;
+  }
+
+  async create(input: CreateTaskInput) {
+    // WHAT: Use one timestamp for a new record's creation and first update.
+    const now = new Date().toISOString();
+    // WHAT: Translate a validated command into the stable domain representation.
+    const task: Task = {
+      id: randomUUID(),
+      title: input.title,
+      description: input.description ?? null,
+      done: false,
+      priority: input.priority,
+      version: 1,
+      createdAt: now,
+      updatedAt: now,
+    };
+    // WHAT: Persist the owned record under its portable identity.
+    this.records.set(task.id, task);
+    // BOUNDARY: Do not expose the mutable stored object.
+    return { ...task };
+  }
+
+  async update(id: string, input: UpdateTaskInput): Promise<UpdateResult> {
+    // CHECK: Distinguish a missing identity from a stale known identity.
+    const current = this.records.get(id);
+    if (!current) return { kind: 'missing' };
+    if (current.version !== input.version) return { kind: 'conflict' };
+
+    // WHAT: Apply only supplied fields and advance the token atomically in this adapter.
+    const updated: Task = {
+      ...current,
+      title: input.title ?? current.title,
+      description: input.description === undefined ? current.description : input.description,
+      priority: input.priority ?? current.priority,
+      done: input.done ?? current.done,
+      version: current.version + 1,
+      updatedAt: new Date().toISOString(),
+    };
+    // WHAT: Replace the record only after every condition passes.
+    this.records.set(id, updated);
+    return { kind: 'updated', task: { ...updated } };
+  }
+
+  async complete(id: string, version: number) {
+    // WHY: Reuse the same compare-and-swap behavior for the database-free checkpoint.
+    return this.update(id, { done: true, version });
+  }
+
+  async delete(id: string) {
+    // WHAT: Map `Map.delete` directly to the port's boolean contract.
+    return this.records.delete(id);
+  }
+}
+```
+
+Create `libs/backend/core/src/lib/errors.ts`:
+
+```ts
+// BOUNDARY: Carry intentional public HTTP policy without leaking driver errors.
+export class HttpError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly code: string,
+    public readonly details?: unknown,
+  ) {
+    // WHAT: Initialize the built-in Error message and stack.
+    super(message);
+    // WHY: Preserve the useful concrete subclass name in logs and tests.
+    this.name = new.target.name;
+  }
+}
+
+// WHAT: Give ordinary absence a stable status and machine-readable code.
+export class NotFoundError extends HttpError {
+  constructor(message = 'Resource not found') {
+    super(404, message, 'NOT_FOUND');
+  }
+}
+
+// WHAT: Represent a stale optimistic-concurrency token intentionally.
+export class ConflictError extends HttpError {
+  constructor(message = 'The resource changed; fetch it and retry') {
+    super(409, message, 'VERSION_CONFLICT');
+  }
+}
+```
+
+Create `libs/backend/core/src/lib/tasks/task.service.ts`:
+
+```ts
+// WHAT: Translate persistence outcomes into use-case-aware errors here.
+import { ConflictError, NotFoundError } from '../errors.js';
+// BOUNDARY: The service knows only the domain-owned port.
+import type { TaskRepository, UpdateResult } from './task.repository.js';
+import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
+
+// WHAT: Keep use-case policy independent of HTTP and database libraries.
+export class TaskService {
+  // BOUNDARY: Constructor injection makes the repository explicit and replaceable.
+  constructor(private readonly repository: TaskRepository) {}
+
+  list(input: ListTasksInput) {
+    // WHAT: Delegate storage-oriented listing through the narrow port.
+    return this.repository.list(input);
+  }
+
+  async get(id: string) {
+    // CHECK: Convert nullable persistence output into a public domain error.
+    const task = await this.repository.findById(id);
+    if (!task) throw new NotFoundError('Task not found');
+    return task;
+  }
+
+  create(input: CreateTaskInput) {
+    // WHAT: Creation policy is deliberately small at this checkpoint.
+    return this.repository.create(input);
+  }
+
+  async update(id: string, input: UpdateTaskInput) {
+    // WHAT: Keep result translation identical for every adapter.
+    return this.unwrap(await this.repository.update(id, input));
+  }
+
+  async complete(id: string, version: number) {
+    // WHY: Later adapters implement this as task-plus-event transaction policy.
+    return this.unwrap(await this.repository.complete(id, version));
+  }
+
+  async delete(id: string) {
+    // CHECK: A false delete result is an intentional not-found outcome.
+    if (!(await this.repository.delete(id))) {
+      throw new NotFoundError('Task not found');
+    }
+  }
+
+  private unwrap(result: UpdateResult) {
+    // WHAT: Preserve three distinct persistence outcomes at the service boundary.
+    if (result.kind === 'missing') throw new NotFoundError('Task not found');
+    if (result.kind === 'conflict') throw new ConflictError();
+    return result.task;
+  }
+}
+```
+
+Replace `libs/backend/core/src/starter.spec.ts` with `libs/backend/core/src/lib/tasks/task.service.spec.ts`:
+
+```ts
+// WHAT: Use real in-memory behavior rather than mocking the behavior under test.
+import { describe, expect, it } from 'vitest';
+import { ConflictError, NotFoundError } from '../errors.js';
+import { InMemoryTaskRepository } from './in-memory-task.repository.js';
+import { TaskService } from './task.service.js';
+
+// WHAT: Build an isolated use-case graph for each test.
+function setup() {
+  const repository = new InMemoryTaskRepository();
+  return { repository, service: new TaskService(repository) };
+}
+
+describe('TaskService', () => {
+  it('creates defaults and lists through the repository port', async () => {
+    // WHAT: Exercise the same command shape future adapters receive.
+    const { service } = setup();
+    const created = await service.create({ title: 'Learn ports', priority: 'medium' });
+    // CHECK: Server-owned defaults exist without either database.
+    expect(created).toMatchObject({ title: 'Learn ports', done: false, version: 1 });
+    // CHECK: The list contract includes data and pagination total.
+    await expect(service.list({ limit: 50, offset: 0 })).resolves.toMatchObject({
+      data: [created],
+      total: 1,
+    });
+  });
+
+  it('distinguishes missing records from stale writes', async () => {
+    const { service } = setup();
+    // CHECK: A never-seen identity maps to not found.
+    await expect(service.get(crypto.randomUUID())).rejects.toBeInstanceOf(NotFoundError);
+    const created = await service.create({ title: 'Race safely', priority: 'high' });
+    // WHAT: Commit one update using the observed version.
+    await service.update(created.id, { done: true, version: created.version });
+    // CHECK: Reusing that version now maps to an intentional conflict.
+    await expect(service.update(created.id, { title: 'Stale title', version: created.version })).rejects.toBeInstanceOf(ConflictError);
+  });
+});
+```
+
+Export only the capabilities later composition needs from `libs/backend/core/src/index.ts`:
+
+```ts
+// BOUNDARY: Keep consumers on the public library surface instead of deep imports.
+export * from './lib/errors.js';
+export * from './lib/tasks/in-memory-task.repository.js';
+export * from './lib/tasks/task.repository.js';
+export * from './lib/tasks/task.schema.js';
+export * from './lib/tasks/task.service.js';
+```
+
+Run the focused proof, then the workspace proof:
+
+```bash
+# CHECK: Prove domain behavior without starting a database or HTTP socket.
+npx nx test backend-core
+# CHECK: Prove the new library surface did not break another project.
+npm run check
+```
+
+Break exercise: temporarily remove the version comparison in the in-memory repository; confirm the stale-write test fails, restore it, then explain why passing TypeScript alone could never detect that correctness bug.
+
+Branch 01 exit check: create, list, update, stale-update, and delete tests pass with no Express, Prisma, or Mongoose import in the task service.
+
+#### Branch 02 — Expose the in-memory contract through HTTP
+
+Create `lesson/02-http-e2e` from the green Branch 01 commit. Now HTTP is a translation boundary around behavior that already works; it is not where business rules are invented.
+
+```bash
+# WHAT: Declare the runtime framework imported by the backend library.
+npm pkg set 'dependencies.express=^5.2.1' --workspace @nx-fullstack-learning/backend-core
+```
+
+Create `libs/backend/core/src/lib/http/tasks.router.ts`:
+
+```ts
+// WHAT: Use a Router so task HTTP translation can be mounted and tested separately.
+import { Router } from 'express';
+// BOUNDARY: HTTP may call service use cases but may not access a repository directly.
+import type { TaskService } from '../tasks/task.service.js';
+// BOUNDARY: Parse every untrusted parameter, query, and body before use.
+import { CompleteTaskSchema, CreateTaskSchema, ListTasksSchema, TaskIdSchema, UpdateTaskSchema } from '../tasks/task.schema.js';
+
+// WHAT: Receive the already-constructed service through explicit injection.
+export function createTasksRouter(service: TaskService) {
+  const router = Router();
+
+  router.get('/', async (request, response) => {
+    // BOUNDARY: Query strings become a typed, bounded list command here.
+    const input = ListTasksSchema.parse(request.query);
+    // WHAT: Await the use case rather than knowing how records are stored.
+    const result = await service.list(input);
+    // WHAT: Keep collection data and page metadata explicit in the HTTP shape.
+    response.json({
+      data: result.data,
+      page: { limit: input.limit, offset: input.offset, total: result.total },
+    });
+  });
+
+  router.get('/:id', async (request, response) => {
+    // BOUNDARY: Reject malformed UUIDs before a repository query.
+    const { id } = TaskIdSchema.parse(request.params);
+    response.json({ data: await service.get(id) });
+  });
+
+  router.post('/', async (request, response) => {
+    // BOUNDARY: Strip unknown input and apply domain defaults through Zod.
+    const input = CreateTaskSchema.parse(request.body);
+    // WHAT: Creation returns 201 and the server-owned representation.
+    response.status(201).json({ data: await service.create(input) });
+  });
+
+  router.patch('/:id', async (request, response) => {
+    const { id } = TaskIdSchema.parse(request.params);
+    // BOUNDARY: Require a positive version and at least one change.
+    const input = UpdateTaskSchema.parse(request.body);
+    response.json({ data: await service.update(id, input) });
+  });
+
+  router.post('/:id/complete', async (request, response) => {
+    const { id } = TaskIdSchema.parse(request.params);
+    // WHY: A separate use case becomes transactional in the database lessons.
+    const { version } = CompleteTaskSchema.parse(request.body);
+    response.json({ data: await service.complete(id, version) });
+  });
+
+  router.delete('/:id', async (request, response) => {
+    const { id } = TaskIdSchema.parse(request.params);
+    await service.delete(id);
+    // WHY: A successful delete has no representation to return.
+    response.status(204).end();
+  });
+
+  return router;
+}
+```
+
+Create `libs/backend/core/src/lib/http/middleware.ts`:
+
+```ts
+// WHAT: Import only Express middleware types and Zod's public error type.
+import type { ErrorRequestHandler, RequestHandler } from 'express';
+import { ZodError } from 'zod';
+import { HttpError } from '../errors.js';
+
+// WHAT: Turn an unmatched route into the same stable problem envelope.
+export const notFound: RequestHandler = (request, response) => {
+  response.status(404).json({
+    code: 'ROUTE_NOT_FOUND',
+    message: `No route for ${request.method} ${request.path}`,
+  });
+};
+
+// BOUNDARY: This must have four arguments so Express recognizes error middleware.
+export const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
+  // WHAT: Validation errors are safe, expected client failures.
+  if (error instanceof ZodError) {
+    response.status(400).json({
+      code: 'VALIDATION_ERROR',
+      message: 'Request validation failed',
+      details: error.issues,
+    });
+    return;
+  }
+
+  // WHAT: Intentional domain/HTTP errors keep their stable public policy.
+  if (error instanceof HttpError) {
+    response.status(error.status).json({
+      code: error.code,
+      message: error.message,
+      details: error.details,
+    });
+    return;
+  }
+
+  // SECURITY: Do not serialize an unknown stack, SQL text, credentials, or driver object.
+  console.error('[unexpected-request-error]', error);
+  response.status(500).json({
+    code: 'INTERNAL_ERROR',
+    message: 'An unexpected error occurred',
+  });
+};
+```
+
+Create `libs/backend/core/src/lib/http/create-app.ts`:
+
+```ts
+// WHAT: Keep application construction separate from opening a network socket.
+import express from 'express';
+import type { TaskService } from '../tasks/task.service.js';
+import { errorHandler, notFound } from './middleware.js';
+import { createTasksRouter } from './tasks.router.js';
+
+// WHAT: Build a testable Express graph around an injected use-case service.
+export function createApp(taskService: TaskService) {
+  const app = express();
+  // SECURITY: Avoid advertising an unnecessary implementation detail.
+  app.disable('x-powered-by');
+  // BOUNDARY: Parse JSON once and reject bodies larger than this learning API accepts.
+  app.use(express.json({ limit: '100kb' }));
+
+  // CHECK: Liveness proves only that the process can serve HTTP.
+  app.get('/api/health/live', (_request, response) => {
+    response.json({ status: 'ok' });
+  });
+
+  // BOUNDARY: Mount feature translation after process-level endpoints.
+  app.use('/api/tasks', createTasksRouter(taskService));
+  // WHAT: Unmatched routes become an intentional 404 representation.
+  app.use(notFound);
+  // BOUNDARY: Error handling is last so it can translate failures above it.
+  app.use(errorHandler);
+  return app;
+}
+```
+
+Add the new public capabilities to `libs/backend/core/src/index.ts`:
+
+```ts
+// WHAT: Keep all Branch 01 exports, then add these HTTP and composition capabilities.
+export * from './lib/http/create-app.js';
+export * from './lib/http/middleware.js';
+export * from './lib/http/tasks.router.js';
+```
+
+Replace `apps/api/src/main.ts`. This is the first composition root, using memory on purpose:
+
+```ts
+// WHAT: Import capabilities through the backend library's public surface.
+import { createApp, InMemoryTaskRepository, TaskService } from '@nx-fullstack-learning/backend-core';
+
+// BOUNDARY: Keep resource construction and startup in one controlled async function.
+async function bootstrap() {
+  try {
+    // BOUNDARY: Choose the concrete repository in the outermost application layer.
+    const repository = new InMemoryTaskRepository();
+    // WHAT: Give domain policy only the narrow storage capability it needs.
+    const taskService = new TaskService(repository);
+    // WHAT: Compose HTTP translation without letting it select infrastructure.
+    const app = createApp(taskService);
+    // BOUNDARY: Parse process input before accepting traffic.
+    const host = process.env.HOST ?? 'localhost';
+    const port = Number(process.env.PORT ?? 3000);
+
+    // WHAT: Open the socket only after every synchronous startup step succeeds.
+    const server = app.listen(port, host, () => {
+      console.log(`[ready] API listening on http://${host}:${port}`);
+    });
+    // CHECK: Convert asynchronous socket failures such as EADDRINUSE to startup failure.
+    server.once('error', (error) => {
+      console.error('[startup-error]', error);
+      process.exitCode = 1;
+    });
+  } catch (error) {
+    // CHECK: Produce one intentional startup diagnostic and a failing exit status.
+    console.error('[startup-error]', error);
+    process.exitCode = 1;
+  }
+}
+
+// WHAT: Start without discarding the promise accidentally.
+void bootstrap();
+```
+
+Why the `try/catch` matters: without it, a thrown synchronous error or rejected awaited startup operation escapes `bootstrap`; modern Node normally terminates on an unhandled rejection, but the log format, cleanup, and exit intent are no longer controlled by your application. A `try/catch` does **not** catch future request failures or every event-emitter error, which is why Express error middleware and the server's `error` listener are separate boundaries. When databases arrive, `await persistence.connect()` belongs inside this `try` before `listen()`, and partial resources must be closed in the failure path.
+
+Create `libs/backend/core/src/lib/http/create-app.spec.ts`:
+
+```ts
+// WHAT: Exercise the real HTTP translation without binding a public port.
+import request from 'supertest';
+import { describe, expect, it } from 'vitest';
+import { InMemoryTaskRepository } from '../tasks/in-memory-task.repository.js';
+import { TaskService } from '../tasks/task.service.js';
+import { createApp } from './create-app.js';
+
+// WHAT: Compose the same layers as production with an isolated in-memory adapter.
+function setup() {
+  return createApp(new TaskService(new InMemoryTaskRepository()));
+}
+
+describe('task HTTP contract', () => {
+  it('creates and lists a task through the full request boundary', async () => {
+    const app = setup();
+    // BOUNDARY: Send untrusted JSON exactly as a real client would.
+    const created = await request(app).post('/api/tasks').send({ title: 'Trace E2E', priority: 'high' }).expect(201);
+    // CHECK: The HTTP representation includes server-owned defaults.
+    expect(created.body.data).toMatchObject({ title: 'Trace E2E', version: 1 });
+    // CHECK: A second request observes the stored record.
+    const listed = await request(app).get('/api/tasks?limit=10').expect(200);
+    expect(listed.body.page.total).toBe(1);
+  });
+
+  it('returns stable validation and not-found envelopes', async () => {
+    const app = setup();
+    // CHECK: Runtime validation rejects a value TypeScript cannot protect at the network.
+    const invalid = await request(app).post('/api/tasks').send({ title: '' }).expect(400);
+    expect(invalid.body.code).toBe('VALIDATION_ERROR');
+    // CHECK: A valid but absent UUID reaches domain-aware not-found policy.
+    const missing = await request(app).get(`/api/tasks/${crypto.randomUUID()}`).expect(404);
+    expect(missing.body.code).toBe('NOT_FOUND');
+  });
+});
+```
+
+Run and probe it:
+
+```bash
+# CHECK: Prove both service and HTTP boundaries in isolation.
+npx nx test backend-core
+# WHAT: Start the API with the in-memory composition root.
+npm run dev:api
+# CHECK: Prove the liveness promise and validated CRUD representation.
+curl -i http://localhost:3000/api/health/live
+curl -i -X POST http://localhost:3000/api/tasks \
+  -H 'content-type: application/json' \
+  -d '{"title":"My first vertical slice","priority":"high"}'
+# CHECK: Prove invalid runtime input becomes a stable 400 response.
+curl -i -X POST http://localhost:3000/api/tasks \
+  -H 'content-type: application/json' \
+  -d '{"title":"","priority":"urgent"}'
+```
+
+Break exercise: start a second API on port 3000 and observe the `EADDRINUSE` startup path. Then throw inside a route and prove Express 5 forwards the rejected async handler to the error middleware while the process remains alive.
+
+Branch 02 exit check: save transcripts for create, list, invalid input, missing task, stale update, unmatched route, and occupied port. There is still no database and therefore no readiness route yet.
+
+#### Branch 03 — Add shared UI and lazy route boundaries
+
+Create `lesson/03-react-routing-ui` from Branch 02. This checkpoint proves presentation ownership and browser routing before adding remote state. Keep the UI plain; the lesson is about boundaries, not a design system.
+
+Declare the router where it is imported:
+
+```bash
+# WHAT: Declare browser routing as a runtime dependency of the web application.
+npm pkg set 'dependencies.react-router-dom=7.18.2' --workspace @nx-fullstack-learning/web
+```
+
+Replace `libs/frontend/ui/src/starter.spec.ts` by creating `libs/frontend/ui/src/lib/button.tsx`:
+
+```tsx
+// WHAT: Preserve the browser's complete native button contract.
+import type { ButtonHTMLAttributes } from 'react';
+
+// WHAT: Add only the small semantic vocabulary shared by real consumers.
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  // WHY: A finite union prevents unsupported visual meanings.
+  variant?: 'primary' | 'danger' | 'secondary';
+};
+
+// WHAT: Supply safe defaults while forwarding every other native attribute.
+export function Button({ variant = 'primary', className = '', type = 'button', ...props }: ButtonProps) {
+  return (
+    // WHY: `button` avoids accidental form submission unless a caller opts into `submit`.
+    <button type={type} className={`button button--${variant} ${className}`.trim()} {...props} />
+  );
+}
+```
+
+Create `libs/frontend/ui/src/lib/page-state.tsx`:
+
+```tsx
+// WHAT: Accept any renderable React content without owning feature policy.
+import type { ReactNode } from 'react';
+
+// WHAT: Announce loading and empty states politely to assistive technology.
+export function PageState({ children }: { children: ReactNode }) {
+  return <p role="status">{children}</p>;
+}
+
+// BOUNDARY: Convert an unknown client failure into a safe user-facing message.
+export function ErrorState({ error }: { error: unknown }) {
+  // SECURITY: Show only the normalized Error message, never an arbitrary object dump.
+  const message = error instanceof Error ? error.message : 'Unexpected error';
+  // WHAT: Use an alert role because the operation has failed.
+  return <p role="alert">Could not load this page: {message}</p>;
+}
+```
+
+Replace `libs/frontend/ui/src/index.ts`:
+
+```ts
+// BOUNDARY: Consumers import from the library contract, not private folders.
+export * from './lib/button';
+export * from './lib/page-state';
+```
+
+Create `libs/frontend/ui/src/lib/button.spec.tsx`:
+
+```tsx
+// WHAT: Test behavior visible to a consumer rather than implementation details.
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { Button } from './button';
+
+describe('Button', () => {
+  it('keeps native semantics and forwards interaction', () => {
+    const onClick = vi.fn();
+    // WHAT: Render the component through its public props.
+    render(<Button onClick={onClick}>Save</Button>);
+    // CHECK: A real accessible role and name locate the control.
+    const button = screen.getByRole('button', { name: 'Save' });
+    expect(button.getAttribute('type')).toBe('button');
+    // WHAT: Exercise the browser-level interaction the caller depends on.
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+});
+```
+
+Create the first route modules. `apps/web/src/pages/tasks-page.tsx` is deliberately static at this checkpoint:
+
+```tsx
+// WHAT: Export a default component so React.lazy can load this route module.
+export default function TasksPage() {
+  return (
+    <section>
+      <h2>Tasks</h2>
+      {/* CHECK: Remote state is intentionally deferred to the next branch. */}
+      <p>The HTTP API is ready. Next, connect this route to it.</p>
+    </section>
+  );
+}
+```
+
+Create `apps/web/src/pages/performance-page.tsx`:
+
+```tsx
+// WHAT: Reserve a lazy boundary for the later measurement and virtualization lab.
+export default function PerformancePage() {
+  return (
+    <section>
+      <h2>Rendering performance</h2>
+      <p>Measure a large normal list here before adding virtualization.</p>
+    </section>
+  );
+}
+```
+
+Create `apps/web/src/pages/architecture-page.tsx`:
+
+```tsx
+// WHAT: Keep decision notes on a route users need not download initially.
+export default function ArchitecturePage() {
+  return (
+    <section>
+      <h2>Architecture decisions</h2>
+      <p>The task service depends on a repository port, not an ORM client.</p>
+    </section>
+  );
+}
+```
+
+Replace `apps/web/src/app/app.tsx`:
+
+```tsx
+// WHAT: Suspense owns loading feedback for modules downloaded on navigation.
+import { lazy, Suspense } from 'react';
+// WHAT: Declarative routes map browser locations to elements.
+import { NavLink, Route, Routes } from 'react-router-dom';
+// BOUNDARY: Reuse presentation through the frontend library's public API.
+import { PageState } from '@nx-fullstack-learning/frontend-ui';
+
+// WHY: Split feature routes into separate production chunks.
+const TasksPage = lazy(() => import('../pages/tasks-page'));
+const PerformancePage = lazy(() => import('../pages/performance-page'));
+const ArchitecturePage = lazy(() => import('../pages/architecture-page'));
+
+export function App() {
+  return (
+    <div className="shell">
+      <header>
+        <h1>Full-stack learning lab</h1>
+        {/* WHAT: Give assistive technology a name for the primary navigation landmark. */}
+        <nav aria-label="Primary navigation">
+          <NavLink to="/">Tasks</NavLink>
+          <NavLink to="/performance">Virtualization</NavLink>
+          <NavLink to="/architecture">Architecture</NavLink>
+        </nav>
+      </header>
+
+      <main>
+        {/* WHAT: Render useful feedback while the selected route chunk loads. */}
+        <Suspense fallback={<PageState>Loading route…</PageState>}>
+          <Routes>
+            <Route path="/" element={<TasksPage />} />
+            <Route path="/performance" element={<PerformancePage />} />
+            <Route path="/architecture" element={<ArchitecturePage />} />
+            {/* CHECK: Unknown browser locations have an intentional UI outcome. */}
+            <Route path="*" element={<p>Page not found.</p>} />
+          </Routes>
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+```
+
+Replace `apps/web/src/main.tsx`:
+
+```tsx
+// WHAT: StrictMode exposes unsafe render-side behavior during development.
+import { StrictMode } from 'react';
+// BOUNDARY: One router owns browser history for the entire application.
+import { BrowserRouter } from 'react-router-dom';
+import * as ReactDOM from 'react-dom/client';
+import App from './app/app';
+import './styles.css';
+
+// CHECK: Fail visibly during development if the HTML shell loses its root node.
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+
+root.render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
+);
+```
+
+Replace `apps/web/src/app/app.spec.tsx` so the router has a test owner:
+
+```tsx
+// WHAT: Test the public route result with an in-memory history owner.
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import App from './app';
+
+describe('App routing', () => {
+  it('loads the task route at the root location', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    );
+    // CHECK: `findByRole` waits for the lazy route chunk to resolve.
+    expect(await screen.findByRole('heading', { name: 'Tasks' })).toBeTruthy();
+  });
+});
+```
+
+Run `npx nx test frontend-ui`, `npx nx test @nx-fullstack-learning/web`, and `npx nx build @nx-fullstack-learning/web`. Inspect the production output and prove that the three pages are separate chunks. Break exercise: introduce a named-only export on one page, observe the lazy import failure, then restore its default export and explain the module contract.
+
+Branch 03 exit check: direct navigation and refresh work for all three host-served routes, the fallback is intentional, the shared button interaction test passes, and no server-state library is used yet.
+
+#### Branch 04 — Connect React with TanStack Query and Zustand
+
+Create `lesson/04-query-and-state` from Branch 03. The division is deliberate: component-local form text stays in `useState`; remote task data belongs to TanStack Query; persistent cross-component display preferences belong to Zustand. Do not copy the API response into the Zustand store.
+
+```bash
+# WHAT: Declare remote-state and small client-state owners at the web project boundary.
+npm pkg set 'dependencies.@tanstack/react-query=^5.101.4' --workspace @nx-fullstack-learning/web
+npm pkg set 'dependencies.zustand=^5.0.15' --workspace @nx-fullstack-learning/web
+```
+
+Create `apps/web/src/app/task.types.ts`:
+
+```ts
+// BOUNDARY: Describe the public HTTP representation, not a Prisma or Mongoose record.
+export type Task = {
+  id: string;
+  title: string;
+  description: string | null;
+  done: boolean;
+  priority: 'low' | 'medium' | 'high';
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// WHAT: Preserve data and pagination metadata from the list endpoint.
+export type TaskListResponse = {
+  data: Task[];
+  page: { limit: number; offset: number; total: number };
+};
+
+// WHAT: A create command contains caller-owned fields only.
+export type CreateTask = Pick<Task, 'title' | 'priority'> & {
+  description?: string;
+};
+
+// WHAT: Reuse one finite filter vocabulary in URL construction and UI state.
+export type TaskFilter = 'all' | 'open' | 'done';
+```
+
+Create `apps/web/src/app/api.ts`:
+
+```ts
+// BOUNDARY: This module owns translation between fetch and typed application calls.
+import type { CreateTask, Task, TaskFilter, TaskListResponse } from './task.types';
+
+// WHAT: Normalize status checking, safe error messages, and JSON decoding once.
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  // BOUNDARY: The browser sends a real HTTP request to the same-origin Vite proxy.
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      // WHAT: Every current mutation sends JSON.
+      'content-type': 'application/json',
+      // WHY: Callers may still supply future authorization or request identifiers.
+      ...init?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    // SECURITY: Treat an error body as optional untrusted data.
+    const problem = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    // WHAT: Reject so TanStack Query owns the operation's error state.
+    throw new Error(problem?.message ?? `Request failed (${response.status})`);
+  }
+
+  // WHY: HTTP 204 intentionally has no JSON body to parse.
+  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+}
+
+// BOUNDARY: Components call use-case-shaped functions, never assemble URLs themselves.
+export const taskApi = {
+  list: (filter: TaskFilter) => {
+    // WHAT: Omit the filter for all tasks; serialize a real boolean otherwise.
+    const done = filter === 'all' ? '' : `&done=${filter === 'done'}`;
+    return request<TaskListResponse>(`/api/tasks?limit=200${done}`);
+  },
+  create: (input: CreateTask) =>
+    request<{ data: Task }>('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  update: (task: Task, patch: Partial<Pick<Task, 'title' | 'done'>>) =>
+    request<{ data: Task }>(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      // WHY: Carry the version observed by this client to reject stale writes.
+      body: JSON.stringify({ ...patch, version: task.version }),
+    }),
+  remove: (id: string) => request<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
+};
+```
+
+Create `apps/web/src/app/task.queries.ts`. You are typing the baseline hooks so you can inspect them, then the lesson requires you to change their behavior; these hooks are not present in the starter.
+
+```ts
+// WHAT: Query owns remote reads; mutations own remote writes and cache reconciliation.
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { taskApi } from './api';
+import type { CreateTask, Task, TaskFilter } from './task.types';
+
+// WHY: Query keys are deterministic cache addresses, not arbitrary labels.
+export const taskKeys = {
+  // WHAT: Address every task-related entry for broad invalidation.
+  all: ['tasks'] as const,
+  // WHAT: Include every input that changes the returned collection.
+  list: (filter: TaskFilter) => [...taskKeys.all, 'list', filter] as const,
+};
+
+export function useTasks(filter: TaskFilter) {
+  return useQuery({
+    queryKey: taskKeys.list(filter),
+    // BOUNDARY: The query function is the only remote read for this cache address.
+    queryFn: () => taskApi.list(filter),
+  });
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // WHAT: Keep the mutation command type visible at the hook boundary.
+    mutationFn: (input: CreateTask) => taskApi.create(input),
+    // CHECK: Refetch every filtered list after server success.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+  });
+}
+
+export function useUpdateTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // WHY: Send the complete observed task because its version is the concurrency token.
+    mutationFn: ({ task, done }: { task: Task; done: boolean }) => taskApi.update(task, { done }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: taskApi.remove,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+  });
+}
+```
+
+Create `apps/web/src/app/task.store.ts`:
+
+```ts
+// WHAT: Zustand owns small synchronous state shared across distant UI components.
+import { create } from 'zustand';
+// WHAT: Persist only user preferences, never authoritative task records.
+import { persist } from 'zustand/middleware';
+import type { TaskFilter } from './task.types';
+
+type TaskUiState = {
+  filter: TaskFilter;
+  compact: boolean;
+  setFilter: (filter: TaskFilter) => void;
+  toggleCompact: () => void;
+};
+
+export const useTaskUiStore = create<TaskUiState>()(
+  persist(
+    (set) => ({
+      // WHAT: Define deterministic first-visit preferences.
+      filter: 'all',
+      compact: false,
+      // WHAT: Replace one scalar preference without touching remote data.
+      setFilter: (filter) => set({ filter }),
+      // WHY: Functional updates are correct even when events are batched.
+      toggleCompact: () => set((state) => ({ compact: !state.compact })),
+    }),
+    // BOUNDARY: Namespace this client-owned value in localStorage.
+    { name: 'task-ui-preferences' },
+  ),
+);
+```
+
+Replace `apps/web/src/pages/tasks-page.tsx`. Start with a normal list; virtualization comes only after you measure a rendering bottleneck:
+
+```tsx
+// WHAT: Form text is local and short-lived, so keep it in this component.
+import { useState, type FormEvent } from 'react';
+import { Button, ErrorState, PageState } from '@nx-fullstack-learning/frontend-ui';
+import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from '../app/task.queries';
+import { useTaskUiStore } from '../app/task.store';
+import type { TaskFilter } from '../app/task.types';
+
+export default function TasksPage() {
+  // WHAT: Draft form input has one owner and does not need a global store.
+  const [title, setTitle] = useState('');
+  // WHAT: Subscribe to shared client preferences.
+  const { filter, setFilter, compact, toggleCompact } = useTaskUiStore();
+  // WHAT: Subscribe to server state at the cache address for the selected filter.
+  const tasks = useTasks(filter);
+  // WHAT: Create independent mutation state for each remote command.
+  const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
+  // WHAT: Derive rows from the query result instead of duplicating them in state.
+  const rows = tasks.data?.data ?? [];
+
+  function submit(event: FormEvent) {
+    // WHAT: Keep the browser on this client-rendered route.
+    event.preventDefault();
+    // BOUNDARY: Normalize before sending, while the API remains authoritative.
+    const nextTitle = title.trim();
+    if (!nextTitle) return;
+    // WHAT: Clear the draft only after the server accepts the task.
+    createTask.mutate({ title: nextTitle, priority: 'medium' }, { onSuccess: () => setTitle('') });
+  }
+
+  return (
+    <section>
+      <h2>Tasks</h2>
+      <p>TanStack Query owns server state; Zustand owns display preferences.</p>
+
+      <form className="task-form" onSubmit={submit}>
+        <label>
+          Task title
+          <input value={title} maxLength={200} onChange={(event) => setTitle(event.target.value)} />
+        </label>
+        <Button type="submit" disabled={createTask.isPending}>
+          {createTask.isPending ? 'Adding…' : 'Add task'}
+        </Button>
+      </form>
+
+      <div className="toolbar">
+        <label>
+          Filter <select
+            value={filter}
+            // BOUNDARY: The select options below constrain this runtime cast.
+            onChange={(event) => setFilter(event.target.value as TaskFilter)}
+          >
+            <option value="all">All</option>
+            <option value="open">Open</option>
+            <option value="done">Done</option>
+          </select>
+        </label>
+        <Button variant="secondary" onClick={toggleCompact}>
+          {compact ? 'Comfortable rows' : 'Compact rows'}
+        </Button>
+      </div>
+
+      {/* WHAT: Render remote states explicitly rather than as one ambiguous boolean. */}
+      {tasks.isPending && <PageState>Loading tasks…</PageState>}
+      {tasks.isError && <ErrorState error={tasks.error} />}
+      {tasks.isSuccess && rows.length === 0 && <PageState>No tasks match this filter.</PageState>}
+      {tasks.isSuccess && rows.length > 0 && (
+        <div className={compact ? 'task-list task-list--compact' : 'task-list'}>
+          {rows.map((task) => (
+            // WHY: Stable server identity preserves row state across refetches.
+            <article className="task-row" key={task.id}>
+              <label>
+                <input type="checkbox" checked={task.done} onChange={(event) => updateTask.mutate({ task, done: event.target.checked })} /> <span className={task.done ? 'task-row__done' : ''}>{task.title}</span>
+              </label>
+              <Button variant="danger" aria-label={`Delete ${task.title}`} onClick={() => deleteTask.mutate(task.id)}>
+                Delete
+              </Button>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+```
+
+Replace `apps/web/src/main.tsx` to add one remote-cache owner outside the router:
+
+```tsx
+// WHAT: Create one Query client for the lifetime of this browser application.
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StrictMode } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import * as ReactDOM from 'react-dom/client';
+import App from './app/app';
+import './styles.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // WHY: Reuse recent task data briefly instead of refetching on every mount.
+      staleTime: 15_000,
+      // WHY: Retry one transient read failure without hiding a persistent outage.
+      retry: 1,
+    },
+  },
+});
+
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+root.render(
+  <StrictMode>
+    {/* BOUNDARY: Every query hook below this point shares one cache. */}
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>,
+);
+```
+
+In `apps/web/vite.config.mts`, replace the existing lesson TODO inside `server` with this proxy property:
+
+```ts
+// BOUNDARY: Keep browser requests same-origin during host development.
+proxy: {
+  // WHAT: Forward only API paths to the separately running Node process.
+  '/api': {
+    target: 'http://localhost:3000',
+    // WHY: Present the target host to the API instead of the Vite origin.
+    changeOrigin: true,
+  },
+},
+```
+
+Append only enough layout CSS to `apps/web/src/styles.css`; do not turn this into a styling exercise:
+
+```css
+/* WHAT: Keep feature content readable without introducing a UI framework. */
+.shell {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* WHAT: Make navigation and controls scannable with a small consistent gap. */
+nav,
+.toolbar,
+.task-form,
+.task-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* WHAT: Separate repeated rows while keeping the visual treatment minimal. */
+.task-row {
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #d0d7de;
+}
+
+/* WHAT: Density is a client preference, not a different server query. */
+.task-list--compact .task-row {
+  padding: 0.25rem 0;
+}
+
+/* WHAT: Preserve the label while communicating completion visually. */
+.task-row__done {
+  text-decoration: line-through;
+}
+```
+
+Replace the Branch 03 app test with this route-only proof so it does not mount a Query hook without a provider:
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import App from './app';
+
+describe('App routing', () => {
+  it('lazy-loads the architecture route', async () => {
+    // WHAT: Begin at a non-default location without owning browser history.
+    render(
+      <MemoryRouter initialEntries={['/architecture']}>
+        <App />
+      </MemoryRouter>,
+    );
+    // CHECK: Wait for the dynamic route module to resolve.
+    expect(await screen.findByRole('heading', { name: 'Architecture decisions' })).toBeTruthy();
+  });
+});
+```
+
+A later task-feature test should construct a fresh `QueryClient` with `retry: false` and mock the HTTP boundary deliberately.
+
+Run both processes, keep the browser network panel open, and create/filter/update/delete tasks. Because the current repository is in memory, restarting the API must erase them; record that behavior rather than mistaking it for a bug.
+
+Then perform the actual learning changes:
+
+1. Add `refetchInterval: 30_000` to `useTasks`, calculate the request rate for 10,000 active users, and remove or keep it based on a written consistency budget.
+2. Deliberately remove `filter` from the query key, switch filters, observe the cache bug, then restore it.
+3. Add optimistic update for completion with a per-query-key snapshot and rollback; force an HTTP 409 and prove rollback plus invalidation.
+4. Reload the browser and prove only filter/density persist. If tasks survive solely because of Zustand, you duplicated server state incorrectly.
+
+Branch 04 exit check: a browser action crosses Vite → Express → Zod → service → in-memory repository and back; the network trace shows invalidation after mutations; the cache key includes the filter; no ORM exists yet.
+
+#### Branch 05 — Replace memory with Prisma/PostgreSQL behind the same port
+
+Create `lesson/05-postgres-prisma` from Branch 04. Complete Lesson 0.3A–0.3C first so your own `database` Compose service is healthy and persistent. The public routes, service, and React code do not change in this branch; only process composition and persistence do.
+
+Declare the runtime packages imported by the backend library:
+
+```bash
+# WHAT: Declare the generated client, PostgreSQL driver adapter, and driver.
+npm pkg set 'dependencies.@prisma/client=^7.9.1' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.@prisma/adapter-pg=^7.9.1' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.pg=^8.23.0' --workspace @nx-fullstack-learning/backend-core
+# WHAT: Declare the environment loader imported by the API composition root.
+npm pkg set 'dependencies.dotenv=^17.4.2' --workspace @nx-fullstack-learning/api
+```
+
+Expand `.env.example`, then copy it to the ignored `.env`:
+
+```dotenv
+# WHAT: Select normal local process behavior.
+NODE_ENV=development
+# BOUNDARY: Bind host processes locally; use 0.0.0.0 later inside a container.
+HOST=localhost
+# WHAT: Keep the documented host API port.
+PORT=3000
+# BOUNDARY: This switch is consumed only by the composition factory.
+DATABASE_CLIENT=prisma
+# SECRET: This is a disposable local credential, never a production value.
+DATABASE_URL=postgresql://app:app@127.0.0.1:5432/learning
+# WHY: Bound connections per process so horizontal scaling cannot exhaust PostgreSQL.
+DATABASE_POOL_MAX=10
+```
+
+Create `prisma.config.ts`:
+
+```ts
+// WHAT: Load the ignored local environment for Prisma CLI commands.
+import 'dotenv/config';
+// BOUNDARY: Prisma's CLI owns schema, migration, and credential configuration here.
+import { defineConfig, env } from 'prisma/config';
+
+export default defineConfig({
+  // WHAT: Point every CLI operation at the learner-authored schema.
+  schema: 'prisma/schema.prisma',
+  // WHAT: Keep ordered, reviewable database history in source control.
+  migrations: { path: 'prisma/migrations' },
+  // SECRET: Read the URL from process configuration, never the Prisma schema.
+  datasource: { url: env('DATABASE_URL') },
+});
+```
+
+Create `prisma/schema.prisma` with only the capability this checkpoint needs:
+
+```prisma
+// WHAT: Generate visible ESM TypeScript inside the library that owns persistence.
+generator client {
+  provider            = "prisma-client"
+  output              = "../libs/backend/core/src/generated/prisma"
+  moduleFormat        = "esm"
+  // WHY: Keep compiled Node ESM imports resolvable outside a bundler.
+  importFileExtension = "js"
+}
+
+// BOUNDARY: Select PostgreSQL semantics while prisma.config.ts supplies credentials.
+datasource db {
+  provider = "postgresql"
+}
+
+// WHAT: Map a domain-friendly model to an explicit SQL table contract.
+model Task {
+  // WHY: Database-generated UUIDs give every writer the same identity policy.
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(200)
+  description String?
+  done        Boolean  @default(false)
+  priority    String   @default("medium") @db.VarChar(10)
+  // WHY: Increment this token to reject a write based on a stale read.
+  version     Int      @default(1)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  // WHY: Match the deterministic newest-first API access path.
+  @@index([createdAt(sort: Desc), id], map: "idx_tasks_created_at")
+  @@map("tasks")
+}
+```
+
+Generate a migration without applying it, inspect the SQL, and then add database-owned constraints before applying it:
+
+```bash
+# CHECK: Reject schema mistakes before generating either SQL or TypeScript.
+npm run prisma:validate
+# WHAT: Create a reviewable migration directory but do not apply it yet.
+npx prisma migrate dev --name init --create-only
+# CHECK: Open the new `prisma/migrations/*_init/migration.sql` and explain every statement.
+```
+
+Append these constraints to the generated `CREATE TABLE "tasks"` statement before its closing `);`—include the required preceding comma after the primary key constraint:
+
+```sql
+-- INVARIANT: Storage still rejects whitespace-only titles if another writer bypasses Zod.
+CONSTRAINT "tasks_title_nonblank" CHECK (length(trim("title")) > 0),
+-- INVARIANT: Storage and the API share the supported priority vocabulary.
+CONSTRAINT "tasks_priority_supported" CHECK ("priority" IN ('low', 'medium', 'high')),
+-- INVARIANT: Optimistic-concurrency tokens remain positive.
+CONSTRAINT "tasks_version_positive" CHECK ("version" > 0)
+```
+
+Then add the partial index after the generated general index:
+
+```sql
+-- WHY: Keep the hot incomplete-task path small as completed history grows.
+CREATE INDEX "idx_tasks_open_created_at"
+  ON "tasks"("created_at" DESC, "id") WHERE "done" = false;
+```
+
+Apply and generate:
+
+```bash
+# BOUNDARY: Apply the reviewed history to your disposable local database.
+npx prisma migrate dev
+# WHAT: Generate the typed client imported by the backend adapter.
+npm run prisma:generate
+# CHECK: Prove Prisma and PostgreSQL agree about applied history.
+npx prisma migrate status
+```
+
+Create `prisma/seed.sql` yourself; this is intentionally plain SQL so you also practise a database-native bulk operation:
+
+```sql
+-- WHAT: Add enough deterministic rows to make pagination and rendering measurable.
+INSERT INTO tasks (title, description, priority, done)
+SELECT
+  'Learning task ' || number,
+  'Generated seed row for pagination and virtualization practice.',
+  (ARRAY['low', 'medium', 'high'])[1 + (number % 3)],
+  number % 5 = 0
+FROM generate_series(1, 1000) AS number
+-- WHY: Repeated local setup must not duplicate the entire learning dataset.
+WHERE NOT EXISTS (SELECT 1 FROM tasks);
+```
+
+```bash
+# BOUNDARY: Execute the reviewed native seed against the configured local database.
+npm run db:seed
+# CHECK: Prove repeat execution leaves the task count unchanged.
+npm run db:seed
+docker compose exec database psql -U app -d learning -c 'select count(*) from tasks;'
+```
+
+Create `libs/backend/core/src/lib/config.ts`:
+
+```ts
+// BOUNDARY: Process environment is untrusted string input.
+import { z } from 'zod';
+
+const EnvironmentSchema = z.object({
+  // WHAT: Make operational mode explicit and bounded.
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // WHAT: Supply safe host-process defaults while allowing container overrides.
+  HOST: z.string().default('localhost'),
+  // BOUNDARY: Coerce and bound the string port before socket construction.
+  PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
+  // BOUNDARY: Start with the one implemented client; MongoDB extends this enum later.
+  DATABASE_CLIENT: z.literal('prisma').default('prisma'),
+  // SECRET: Require a real URL instead of hiding a production fallback.
+  DATABASE_URL: z.string().url(),
+  // WHY: Prevent one process from creating an unbounded database load.
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
+});
+
+export type AppConfig = {
+  nodeEnv: 'development' | 'test' | 'production';
+  host: string;
+  port: number;
+  databaseClient: 'prisma';
+  databaseUrl: string;
+  databasePoolMax: number;
+};
+
+// BOUNDARY: Parse once; pass typed configuration instead of reading process.env everywhere.
+export function loadConfig(environment = process.env): AppConfig {
+  const parsed = EnvironmentSchema.parse(environment);
+  return {
+    nodeEnv: parsed.NODE_ENV,
+    host: parsed.HOST,
+    port: parsed.PORT,
+    databaseClient: parsed.DATABASE_CLIENT,
+    databaseUrl: parsed.DATABASE_URL,
+    databasePoolMax: parsed.DATABASE_POOL_MAX,
+  };
+}
+```
+
+Create `libs/backend/core/src/lib/db.ts`:
+
+```ts
+// WHAT: Prisma 7 uses an explicit PostgreSQL driver adapter.
+import { PrismaPg } from '@prisma/adapter-pg';
+// WHAT: Import the client generated from your schema, never hand-write it.
+import { PrismaClient } from '../generated/prisma/client.js';
+import type { AppConfig } from './config.js';
+
+// WHAT: Construct one client and one bounded pool per API process.
+export function createPrismaClient(config: AppConfig) {
+  const adapter = new PrismaPg({
+    // SECRET: Supply validated runtime credentials rather than embedding them in code.
+    connectionString: config.databaseUrl,
+    // WHY: Bound total connections as API instance count grows.
+    max: config.databasePoolMax,
+    // WHY: Fail instead of waiting forever when the pool cannot acquire a connection.
+    connectionTimeoutMillis: 5_000,
+    // WHY: Release long-idle connections while retaining a useful warm pool.
+    idleTimeoutMillis: 30_000,
+    // CHECK: Make this workload recognizable in `pg_stat_activity`.
+    application_name: 'nx-learning-api',
+  });
+
+  // BOUNDARY: The generated query API runs over the configured driver adapter.
+  return new PrismaClient({ adapter });
+}
+```
+
+Create `libs/backend/core/src/lib/tasks/prisma-task.repository.ts`:
+
+```ts
+// WHAT: Import generated storage types from the persistence-owning library.
+import type { Prisma, PrismaClient, Task as PrismaTask } from '../../generated/prisma/client.js';
+import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
+import { PrioritySchema } from './task.schema.js';
+import type { Task, TaskRepository, UpdateResult } from './task.repository.js';
+
+// BOUNDARY: Map storage values into the stable domain/API representation.
+function mapTask(row: PrismaTask): Task {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    done: row.done,
+    // CHECK: A failure here exposes drift between database constraints and domain policy.
+    priority: PrioritySchema.parse(row.priority),
+    version: row.version,
+    // BOUNDARY: Public HTTP dates are ISO strings, not JavaScript Date instances.
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+// WHAT: Implement the same port previously satisfied by the in-memory adapter.
+export class PrismaTaskRepository implements TaskRepository {
+  // BOUNDARY: Keep Prisma private to this infrastructure adapter.
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async list(input: ListTasksInput) {
+    // WHAT: Build a typed predicate; undefined fields are deliberately omitted.
+    const where: Prisma.TaskWhereInput = {
+      done: input.done,
+      // WHY: Match the shared case-insensitive substring behavior.
+      title: input.q ? { contains: input.q, mode: 'insensitive' } : undefined,
+    };
+    // WHY: Return page and count from one consistent database transaction.
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.task.findMany({
+        where,
+        // WHY: Identity breaks ties when timestamps are equal.
+        orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+        take: input.limit,
+        skip: input.offset,
+      }),
+      this.prisma.task.count({ where }),
+    ]);
+    return { data: rows.map(mapTask), total };
+  }
+
+  async findById(id: string) {
+    // WHAT: A unique lookup returns null as an ordinary absence outcome.
+    const row = await this.prisma.task.findUnique({ where: { id } });
+    return row ? mapTask(row) : null;
+  }
+
+  async create(input: CreateTaskInput) {
+    // WHAT: Use generated query types for ordinary CRUD.
+    const row = await this.prisma.task.create({
+      data: {
+        title: input.title,
+        // WHY: Translate an omitted optional command to explicit SQL null.
+        description: input.description ?? null,
+        priority: input.priority,
+      },
+    });
+    return mapTask(row);
+  }
+
+  async update(id: string, input: UpdateTaskInput): Promise<UpdateResult> {
+    // WHAT: Separate the condition token from mutable fields.
+    const { version, ...patch } = input;
+    return this.prisma.$transaction(async (transaction) => {
+      // WHY: `updateMany` reports zero instead of throwing when id/version misses.
+      const updated = await transaction.task.updateMany({
+        where: { id, version },
+        data: {
+          ...patch,
+          // WHY: Advance the version in the same statement as the requested change.
+          version: { increment: 1 },
+          updatedAt: new Date(),
+        },
+      });
+      if (updated.count === 0) return this.classifyMiss(transaction, id);
+      // CHECK: The row must exist in this transaction after a successful update.
+      const row = await transaction.task.findUniqueOrThrow({ where: { id } });
+      return { kind: 'updated' as const, task: mapTask(row) };
+    });
+  }
+
+  async complete(id: string, version: number) {
+    // WHAT: Reuse version-aware update until Branch 06 adds an atomic event record.
+    return this.update(id, { done: true, version });
+  }
+
+  async delete(id: string) {
+    // WHY: `deleteMany` converts not-found to a useful count rather than an exception.
+    const deleted = await this.prisma.task.deleteMany({ where: { id } });
+    return deleted.count === 1;
+  }
+
+  private async classifyMiss(transaction: Prisma.TransactionClient, id: string): Promise<UpdateResult> {
+    // WHAT: Distinguish a missing id from a real version conflict.
+    const existing = await transaction.task.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    return existing ? { kind: 'conflict' } : { kind: 'missing' };
+  }
+}
+```
+
+Create the plain-SQL exception `libs/backend/core/src/lib/tasks/plain-sql.selectors.ts`:
+
+```ts
+// WHAT: Accept the same long-lived client owned by the persistence adapter.
+import type { PrismaClient } from '../../generated/prisma/client.js';
+
+// WHAT: Describe only columns selected by this engine-specific query.
+export type OpenTaskRow = { id: string; title: string; created_at: Date };
+
+// WHY: Keep a deliberate SQL escape hatch for plans and database-native syntax.
+export function selectRecentOpenTasks(prisma: PrismaClient, limit: number) {
+  // SECURITY: The tagged template sends `limit` as a parameter, not executable text.
+  return prisma.$queryRaw<OpenTaskRow[]>`
+    SELECT id, title, created_at
+    FROM tasks
+    WHERE done = false
+    ORDER BY created_at DESC, id
+    LIMIT ${limit}::int
+  `;
+}
+```
+
+Create `libs/backend/core/src/lib/persistence/persistence.ts`:
+
+```ts
+import type { TaskRepository } from '../tasks/task.repository.js';
+
+// WHAT: Keep process diagnostics stable without exposing a client API.
+export type PersistenceKind = 'postgresql-prisma' | 'mongodb-mongoose';
+
+// BOUNDARY: Startup and health depend on lifecycle capabilities, not PrismaClient.
+export interface PersistenceAdapter {
+  readonly kind: PersistenceKind;
+  // BOUNDARY: Business policy receives only the domain repository port.
+  readonly tasks: TaskRepository;
+  // CHECK: Establish connectivity before accepting traffic.
+  connect(): Promise<void>;
+  // WHAT: Release the selected driver's pool during shutdown.
+  disconnect(): Promise<void>;
+  // CHECK: Throw when the dependency cannot currently serve requests.
+  checkReadiness(): Promise<void>;
+}
+```
+
+Create `libs/backend/core/src/lib/persistence/prisma-persistence.adapter.ts`:
+
+```ts
+import type { AppConfig } from '../config.js';
+import { createPrismaClient } from '../db.js';
+import { PrismaTaskRepository } from '../tasks/prisma-task.repository.js';
+import type { PersistenceAdapter } from './persistence.js';
+
+// WHAT: Own the Prisma client, pool lifecycle, and repositories as one resource boundary.
+export class PrismaPersistenceAdapter implements PersistenceAdapter {
+  readonly kind = 'postgresql-prisma' as const;
+  private readonly prisma;
+  readonly tasks;
+
+  constructor(config: AppConfig) {
+    // WHY: Construct exactly one client/pool for this process.
+    this.prisma = createPrismaClient(config);
+    // BOUNDARY: Expose the domain port rather than the generated client.
+    this.tasks = new PrismaTaskRepository(this.prisma);
+  }
+
+  async connect() {
+    // CHECK: Invalid credentials or unavailable PostgreSQL fail startup.
+    await this.prisma.$connect();
+  }
+
+  async disconnect() {
+    // WHAT: Drain Prisma and its underlying PostgreSQL pool.
+    await this.prisma.$disconnect();
+  }
+
+  async checkReadiness() {
+    // CHECK: A tiny database-native query proves current connectivity.
+    await this.prisma.$queryRaw`SELECT 1`;
+  }
+}
+```
+
+Create `libs/backend/core/src/lib/persistence/create-persistence.ts`:
+
+```ts
+import type { AppConfig } from '../config.js';
+import type { PersistenceAdapter } from './persistence.js';
+import { PrismaPersistenceAdapter } from './prisma-persistence.adapter.js';
+
+// BOUNDARY: Keep infrastructure selection in one outer factory from the beginning.
+export function createPersistence(config: AppConfig): PersistenceAdapter {
+  // WHY: Branch 05 has one honest implementation; Branch 07 adds the second case here.
+  return new PrismaPersistenceAdapter(config);
+}
+```
+
+Replace `libs/backend/core/src/lib/http/create-app.ts` completely; do not guess which Branch 02 lines remain:
+
+```ts
+// WHAT: Keep application construction separate from opening a socket.
+import express from 'express';
+import type { PersistenceAdapter } from '../persistence/persistence.js';
+import type { TaskService } from '../tasks/task.service.js';
+import { errorHandler, notFound } from './middleware.js';
+import { createTasksRouter } from './tasks.router.js';
+
+// WHAT: Name every capability HTTP composition needs.
+export type ApplicationDependencies = {
+  taskService: TaskService;
+  // BOUNDARY: Health sees only diagnostics, never ORM methods.
+  persistence: Pick<PersistenceAdapter, 'kind' | 'checkReadiness'>;
+};
+
+export function createApp({ taskService, persistence }: ApplicationDependencies) {
+  const app = express();
+  app.disable('x-powered-by');
+  app.use(express.json({ limit: '100kb' }));
+
+  // CHECK: Liveness never calls a dependency.
+  app.get('/api/health/live', (_request, response) => {
+    response.json({ status: 'ok' });
+  });
+  // CHECK: Readiness crosses the selected adapter's real connection.
+  app.get('/api/health/ready', async (_request, response) => {
+    await persistence.checkReadiness();
+    response.json({ status: 'ready', persistence: persistence.kind });
+  });
+
+  app.use('/api/tasks', createTasksRouter(taskService));
+  app.use(notFound);
+  app.use(errorHandler);
+  return app;
+}
+```
+
+Update the `setup()` function in `create-app.spec.ts`; tests should inject a deterministic readiness capability rather than opening PostgreSQL:
+
+```ts
+function setup() {
+  // WHAT: Use real domain/in-memory behavior for HTTP contract tests.
+  const taskService = new TaskService(new InMemoryTaskRepository());
+  // BOUNDARY: Stub only the external lifecycle capability this test does not own.
+  const persistence = {
+    kind: 'postgresql-prisma' as const,
+    checkReadiness: async () => undefined,
+  };
+  return createApp({ taskService, persistence });
+}
+```
+
+Update `libs/backend/core/src/index.ts` by keeping prior exports and adding:
+
+```ts
+export * from './lib/config.js';
+export * from './lib/db.js';
+export * from './lib/persistence/create-persistence.js';
+export * from './lib/persistence/persistence.js';
+export * from './lib/persistence/prisma-persistence.adapter.js';
+export * from './lib/tasks/plain-sql.selectors.js';
+export * from './lib/tasks/prisma-task.repository.js';
+```
+
+Replace `apps/api/src/main.ts` with controlled database startup and shutdown:
+
+```ts
+// WHAT: Load ignored local values before configuration is parsed.
+import 'dotenv/config';
+// WHAT: `once` converts server events into an awaitable startup boundary.
+import { once } from 'node:events';
+import { createApp, createPersistence, loadConfig, TaskService, type PersistenceAdapter } from '@nx-fullstack-learning/backend-core';
+
+async function bootstrap() {
+  // WHAT: Retain a reference so a partial startup can release its pool.
+  let persistence: PersistenceAdapter | undefined;
+  try {
+    // BOUNDARY: Parse configuration before constructing any resource or accepting traffic.
+    const config = loadConfig();
+    // BOUNDARY: Select the concrete database implementation in exactly one place.
+    persistence = createPersistence(config);
+    // CHECK: Fail startup if the selected database cannot be reached.
+    await persistence.connect();
+    // BOUNDARY: Domain policy sees the repository port, never PrismaClient.
+    const taskService = new TaskService(persistence.tasks);
+    // WHAT: Compose the HTTP graph after its dependencies are ready.
+    const app = createApp({ taskService, persistence });
+    // WHAT: Begin opening the socket only after configuration and connectivity pass.
+    const server = app.listen(config.port, config.host);
+    // CHECK: Reject this await on asynchronous socket errors such as EADDRINUSE.
+    await once(server, 'listening');
+    console.log(`[ready] API listening on http://${config.host}:${config.port}`);
+
+    // WHAT: Ensure only the first termination signal begins shutdown.
+    let shuttingDown = false;
+    const shutdown = async (signal: string) => {
+      if (shuttingDown) return;
+      shuttingDown = true;
+      console.log(`[shutdown] ${signal}`);
+      // WHY: Bound draining so an orchestrator is not left waiting forever.
+      const forcedExit = setTimeout(() => {
+        console.error('[shutdown-timeout] forcing exit');
+        // CHECK: Exit only after the explicit graceful deadline is exhausted.
+        process.exit(1);
+      }, 10_000).unref();
+      try {
+        // BOUNDARY: Stop accepting traffic and await in-flight connection closure.
+        await new Promise<void>((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()));
+        });
+        // WHAT: Close the selected database pool after HTTP draining.
+        await persistence?.disconnect();
+      } catch (error) {
+        console.error('[shutdown-error]', error);
+        process.exitCode = 1;
+      } finally {
+        clearTimeout(forcedExit);
+      }
+    };
+    // WHAT: Register lifecycle behavior once for orchestrator and terminal signals.
+    process.once('SIGTERM', () => void shutdown('SIGTERM'));
+    process.once('SIGINT', () => void shutdown('SIGINT'));
+  } catch (error) {
+    // CHECK: A failed config parse, connection, or socket produces a non-zero outcome.
+    console.error('[startup-error]', error);
+    // WHAT: Release a pool that may have been constructed or partially connected.
+    await persistence?.disconnect().catch((disconnectError) => {
+      console.error('[startup-cleanup-error]', disconnectError);
+    });
+    process.exitCode = 1;
+  }
+}
+
+void bootstrap();
+```
+
+This is the full answer to “what happens without `try/catch` here?” The process probably still dies on an unhandled rejected startup promise, but it no longer owns the diagnostic, cleanup, and exit policy. The `catch` controls startup failures; Express middleware controls request failures; signal handlers control normal shutdown. They are three different lifecycles.
+
+Prove the substitution:
+
+```bash
+# WHAT: Start only the learner-authored PostgreSQL service and wait for health.
+docker compose up database -d --wait
+# CHECK: Generate, type-check, test, and build the cumulative application.
+npm run prisma:generate && npm run check
+# WHAT: Start both host processes using the PostgreSQL adapter.
+npm run dev
+# CHECK: Readiness now crosses the real pool; liveness remains process-only.
+curl -i http://localhost:3000/api/health/live
+curl -i http://localhost:3000/api/health/ready
+# WHAT: Stop only PostgreSQL to create a dependency failure.
+docker compose stop database
+# CHECK: Liveness stays 200 while readiness fails with the stable 500 envelope.
+curl -i http://localhost:3000/api/health/live
+curl -i http://localhost:3000/api/health/ready
+```
+
+Core exercise: create the same task before and after an API restart and prove PostgreSQL preserves it. Then execute the parameterized `selectRecentOpenTasks` selector, capture `EXPLAIN (ANALYZE, BUFFERS)`, and explain why ordinary CRUD stays in Prisma while measured PostgreSQL-specific work may use SQL.
+
+Branch 05 exit check: browser and HTTP contracts are unchanged, Prisma CRUD passes the repository contract suite, generated types never cross the repository, data survives API replacement, invalid `DATABASE_URL` fails before `listen`, and shutdown releases the pool.
+
+Mixed frontend continuation — finish the virtualization requirement before Branch 06. First render 10,000 ordinary rows in `performance-page.tsx`, record DOM node count and React Profiler commit time, and only then declare the virtualization package:
+
+```bash
+# WHAT: Add windowed rendering only after the unvirtualized evidence exists.
+npm pkg set 'dependencies.@tanstack/react-virtual=^3.14.10' --workspace @nx-fullstack-learning/web
+```
+
+Replace `apps/web/src/pages/performance-page.tsx`:
+
+```tsx
+// WHAT: Memoize the demonstration dataset and keep a ref to the scroll owner.
+import { useMemo, useRef } from 'react';
+// WHAT: Calculate the small visible window from the large logical collection.
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+export default function PerformancePage() {
+  // WHY: Keep data construction out of unrelated rerenders in this measurement lab.
+  const rows = useMemo(() => Array.from({ length: 10_000 }, (_, index) => `Measured row ${index + 1}`), []);
+  // BOUNDARY: This element, not the browser window, owns scroll position.
+  const parentRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    // WHAT: Keep all logical rows reachable by scrolling.
+    count: rows.length,
+    // BOUNDARY: Attach calculations to the actual scroll owner.
+    getScrollElement: () => parentRef.current,
+    // WHY: Initial geometry exists before any row is measured.
+    estimateSize: () => 36,
+    // WHY: A small off-screen buffer hides work during quick scrolling.
+    overscan: 8,
+  });
+
+  return (
+    <section>
+      <h2>Rendering performance</h2>
+      <p>10,000 logical rows; inspect how few row elements exist in the DOM.</p>
+      <div
+        ref={parentRef}
+        // WHAT: Establish the bounded scroll viewport required by the virtualizer.
+        style={{ height: 400, overflow: 'auto', border: '1px solid #d0d7de' }}
+      >
+        <div
+          // WHY: Preserve full scrollbar geometry without rendering every row.
+          style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => (
+            <div
+              // WHY: Logical index is stable because this fixed dataset never reorders.
+              key={virtualRow.index}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: virtualRow.size,
+                // WHAT: Move this small physical row to its logical scroll position.
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {rows[virtualRow.index]}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+This optimizes DOM/rendering work, not network transfer. Repeat the exercise with server pagination: downloading one million rows and rendering twenty is still a broken data boundary. For a mutable task list, use stable task IDs via `getItemKey`, and for variable-height rows attach `measureElement` rather than trusting a fixed estimate.
+
+Virtualization exit check: preserve before/after DOM counts and Profiler timing, test keyboard/assistive behavior, and state the measured threshold at which the extra complexity earns its place.
+
+#### Branch 06 — Make completion correct under concurrency
+
+Create `lesson/06-concurrency-transactions` from Branch 05. This branch does not add another endpoint. It strengthens one existing use case so a task transition and its event either both commit or both roll back, and so two callers using the same observed version cannot both win.
+
+Extend the `Task` model in `prisma/schema.prisma` with the relationship:
+
+```prisma
+// WHAT: Express ownership so Prisma can navigate the task's transition records.
+events TaskEvent[]
+```
+
+Then add this model after `Task`:
+
+```prisma
+// WHAT: Preserve transition evidence separately from the current task projection.
+model TaskEvent {
+  // WHAT: Use an efficient database-native sequence for internal event identity.
+  id        BigInt   @id @default(autoincrement())
+  taskId    String   @map("task_id") @db.Uuid
+  eventType String   @map("event_type") @db.VarChar(50)
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  // INVARIANT: An event cannot outlive the task whose history it describes.
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // WHY: Match newest-first event-history reads for one task.
+  @@index([taskId, createdAt(sort: Desc)], map: "idx_task_events_task_created")
+  @@map("task_events")
+}
+```
+
+Create and review the new migration rather than editing the applied initial migration:
+
+```bash
+# WHAT: Generate the next reviewable change from the schema difference.
+npx prisma migrate dev --name add-task-events --create-only
+# CHECK: Verify the SQL creates one table, one foreign key, and one matching index.
+# BOUNDARY: Apply only after reviewing destructive and locking implications.
+npx prisma migrate dev
+# WHAT: Regenerate types so the new relation and model become available.
+npm run prisma:generate
+```
+
+Replace only `complete` in `PrismaTaskRepository`:
+
+```ts
+async complete(id: string, version: number): Promise<UpdateResult> {
+  // BOUNDARY: Prisma keeps every callback operation on one transaction connection.
+  return this.prisma.$transaction(async (transaction) => {
+    // WHAT: Match identity and the exact version observed by the caller.
+    const updated = await transaction.task.updateMany({
+      where: { id, version },
+      data: {
+        done: true,
+        // WHY: Advance the compare-and-swap token with the state transition.
+        version: { increment: 1 },
+        updatedAt: new Date(),
+      },
+    });
+
+    // CHECK: Classify missing versus stale without inserting an event.
+    if (updated.count === 0) return this.classifyMiss(transaction, id);
+
+    // WHAT: Record the event only after this transaction owns the transition.
+    await transaction.taskEvent.create({
+      data: {
+        taskId: id,
+        eventType: 'completed',
+        // WHY: Preserve the token that authorized this transition for later diagnosis.
+        payload: { previousVersion: version },
+      },
+    });
+
+    // CHECK: Read the representation that will be returned before committing.
+    const row = await transaction.task.findUniqueOrThrow({ where: { id } });
+    return { kind: 'updated' as const, task: mapTask(row) };
+  });
+}
+```
+
+Run the race through the public API. Create one task, copy its `id` and `version`, then send the same completion command twice in parallel:
+
+```bash
+# WHAT: Both clients claim to have observed version 1.
+curl -sS -X POST "http://localhost:3000/api/tasks/$TASK_ID/complete" \
+  -H 'content-type: application/json' -d '{"version":1}' &
+curl -sS -X POST "http://localhost:3000/api/tasks/$TASK_ID/complete" \
+  -H 'content-type: application/json' -d '{"version":1}' &
+# CHECK: Wait for both clients; one must succeed and one must receive conflict policy.
+wait
+# CHECK: Exactly one durable event proves the transaction invariant.
+docker compose exec database psql -U app -d learning -c \
+  "select task_id, event_type, payload from task_events where task_id = '$TASK_ID';"
+```
+
+Do not confuse JavaScript concurrency with CPU parallelism. These two HTTP operations overlap because Node can wait on I/O without blocking the event loop; PostgreSQL serializes the competing conditional writes. CPU-heavy JavaScript still blocks the main thread until you move it to a worker thread in Lesson 2.7.
+
+Add a failure experiment before calling the transaction complete: temporarily throw after `task.updateMany` but before `taskEvent.create`. The request must fail, the task version must remain unchanged, and no event may exist. Restore the code and prove the happy path again.
+
+Senior exercise — idempotent create: add an `idempotency_records` table with a unique `(scope, key)`, request hash, status, and stored response. In one transaction, insert the key before the task; on a uniqueness conflict, return the stored response only when the request hash matches, otherwise return 409. A version token protects updates based on prior reads; an idempotency key deduplicates retried commands after an unknown outcome. They solve different problems and both branches are cumulative.
+
+If this becomes its own summit checkpoint, create `lesson/06a-node-idempotency` **from the completed `lesson/06-concurrency-transactions` branch**. It must contain Branches 01–06 by ancestry; creating it from `workshop/start` would remove the HTTP command, transaction boundary, database constraint, and conflict behavior that the exercise depends on.
+
+Expert exercise — isolation and retry: run the completion transaction at `Serializable`, deliberately create a serialization failure, and implement a bounded retry with jitter only for the driver's retryable transaction code. Never retry validation, authorization, uniqueness, or arbitrary unknown errors.
+
+Branch 06 exit check: ten repeated two-client races always produce one success, one 409, one version increment, and one event; the injected failure rolls back both writes; you can explain event-loop concurrency, database atomicity, and worker-thread parallelism separately.
+
+#### Branch 07 — Add Mongoose/MongoDB without changing the use case
+
+Create `lesson/07-mongodb-mongoose` from Branch 06. Complete Lesson 3B.0 first, including the learner-authored MongoDB service and replica-set setup. Transactions require a replica set even when the lab has only one member.
+
+Declare Mongoose at the backend project boundary and extend `.env.example`:
+
+```bash
+# WHAT: Declare the alternative document-database runtime adapter.
+npm pkg set 'dependencies.mongoose=^9.9.1' --workspace @nx-fullstack-learning/backend-core
+```
+
+```dotenv
+# BOUNDARY: Change this one value to select infrastructure at process composition.
+DATABASE_CLIENT=mongoose
+# WHAT: Direct connection makes the single published learning member addressable.
+MONGODB_URL=mongodb://127.0.0.1:27017/learning?replicaSet=rs0&directConnection=true
+```
+
+Extend `config.ts` without duplicating the existing `databaseClient` property:
+
+```ts
+// BOUNDARY: Both implemented clients are valid startup choices now.
+DATABASE_CLIENT: z.enum(['prisma', 'mongoose']).default('prisma'),
+// SECRET: Require the selected MongoDB topology URI from configuration.
+MONGODB_URL: z.string().min(1),
+
+// Replace AppConfig's existing literal client type, then add the URI:
+databaseClient: 'prisma' | 'mongoose';
+mongodbUrl: string;
+
+// Keep the existing databaseClient mapping and add:
+mongodbUrl: parsed.MONGODB_URL,
+```
+
+Create `libs/backend/core/src/lib/tasks/mongoose.models.ts`:
+
+```ts
+// WHAT: Compile schemas against an owned connection, not Mongoose's global singleton.
+import type { Connection, Model } from 'mongoose';
+import { Schema } from 'mongoose';
+
+// BOUNDARY: This storage record remains private to the MongoDB adapter.
+export type MongoTaskRecord = {
+  _id: string;
+  title: string;
+  description: string | null;
+  done: boolean;
+  priority: 'low' | 'medium' | 'high';
+  version: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// BOUNDARY: Services never import the event storage shape.
+export type MongoTaskEventRecord = {
+  taskId: string;
+  eventType: 'completed';
+  payload: { previousVersion: number };
+  createdAt: Date;
+};
+
+export type MongoModels = {
+  Task: Model<MongoTaskRecord>;
+  TaskEvent: Model<MongoTaskEventRecord>;
+};
+
+const taskSchema = new Schema<MongoTaskRecord>(
+  {
+    // WHY: UUID strings preserve identity across PostgreSQL, MongoDB, URLs, and caches.
+    _id: { type: String, required: true },
+    // CHECK: Storage validation remains defense in depth behind Zod.
+    title: { type: String, required: true, trim: true, minlength: 1, maxlength: 200 },
+    description: { type: String, default: null, maxlength: 2_000 },
+    done: { type: Boolean, required: true, default: false },
+    priority: {
+      type: String,
+      required: true,
+      enum: ['low', 'medium', 'high'],
+      default: 'medium',
+    },
+    // WHY: Use the same explicit domain token as PostgreSQL, not Mongoose `__v`.
+    version: { type: Number, required: true, default: 1, min: 1 },
+  },
+  {
+    // WHAT: Store both timestamps as native BSON dates.
+    timestamps: true,
+    // WHY: Prevent a second, Mongoose-specific version authority.
+    versionKey: false,
+    // SECURITY: Reject writes before connection instead of buffering them.
+    bufferCommands: false,
+    collection: 'tasks',
+  },
+);
+
+// WHY: Match filtered and unfiltered deterministic list access paths.
+taskSchema.index({ done: 1, createdAt: -1, _id: 1 });
+taskSchema.index({ createdAt: -1, _id: 1 });
+
+const taskEventSchema = new Schema<MongoTaskEventRecord>(
+  {
+    taskId: { type: String, required: true },
+    eventType: { type: String, required: true, enum: ['completed'] },
+    // BOUNDARY: The repository owns this event-specific runtime shape.
+    payload: { type: Schema.Types.Mixed, required: true },
+  },
+  {
+    // WHAT: Events need a creation time but no meaningless update time.
+    timestamps: { createdAt: true, updatedAt: false },
+    versionKey: false,
+    bufferCommands: false,
+    collection: 'task_events',
+  },
+);
+
+// WHY: Match newest-first history lookup for one task.
+taskEventSchema.index({ taskId: 1, createdAt: -1 });
+
+export function createMongoModels(connection: Connection): MongoModels {
+  return {
+    // WHAT: Bind both models to the lifecycle-owned connection.
+    Task: connection.model<MongoTaskRecord>('Task', taskSchema),
+    TaskEvent: connection.model<MongoTaskEventRecord>('TaskEvent', taskEventSchema),
+  };
+}
+```
+
+Create `libs/backend/core/src/lib/tasks/mongoose-task.repository.ts`:
+
+```ts
+import { randomUUID } from 'node:crypto';
+import type { ClientSession, Connection, QueryFilter } from 'mongoose';
+import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
+import { PrioritySchema } from './task.schema.js';
+import type { Task, TaskRepository, UpdateResult } from './task.repository.js';
+import type { MongoModels, MongoTaskRecord } from './mongoose.models.js';
+
+// SECURITY: Make user text literal before placing it in a regular expression.
+function escapeRegularExpression(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// BOUNDARY: Translate `_id` and BSON dates into the stable domain representation.
+function mapTask(row: MongoTaskRecord): Task {
+  return {
+    id: row._id,
+    title: row.title,
+    description: row.description,
+    done: row.done,
+    priority: PrioritySchema.parse(row.priority),
+    version: row.version,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+// WHAT: Implement the same domain port with Mongoose and MongoDB.
+export class MongooseTaskRepository implements TaskRepository {
+  constructor(
+    private readonly connection: Connection,
+    private readonly models: MongoModels,
+  ) {}
+
+  async list(input: ListTasksInput) {
+    // BOUNDARY: Translate shared semantics to a MongoDB predicate here.
+    const filter: QueryFilter<MongoTaskRecord> = {
+      ...(input.done === undefined ? {} : { done: input.done }),
+      ...(input.q ? { title: { $regex: escapeRegularExpression(input.q), $options: 'i' } } : {}),
+    };
+    // WHY: Independent reads may overlap; `lean` skips unnecessary hydration.
+    const [rows, total] = await Promise.all([this.models.Task.find(filter).sort({ createdAt: -1, _id: 1 }).skip(input.offset).limit(input.limit).lean().exec(), this.models.Task.countDocuments(filter).exec()]);
+    return { data: rows.map(mapTask), total };
+  }
+
+  async findById(id: string) {
+    // WHY: Read-only output needs no document methods or change tracking.
+    const row = await this.models.Task.findById(id).lean().exec();
+    return row ? mapTask(row) : null;
+  }
+
+  async create(input: CreateTaskInput) {
+    // WHAT: Generate the portable UUID at the infrastructure boundary.
+    const row = await this.models.Task.create({
+      _id: randomUUID(),
+      title: input.title,
+      description: input.description ?? null,
+      priority: input.priority,
+    });
+    return mapTask(row.toObject());
+  }
+
+  async update(id: string, input: UpdateTaskInput): Promise<UpdateResult> {
+    // WHY: Never write undefined properties through `$set`.
+    const changes: Record<string, unknown> = { updatedAt: new Date() };
+    if (input.title !== undefined) changes.title = input.title;
+    if (input.description !== undefined) changes.description = input.description;
+    if (input.priority !== undefined) changes.priority = input.priority;
+    if (input.done !== undefined) changes.done = input.done;
+
+    // WHY: Identity plus version makes compare-and-swap one atomic document update.
+    const row = await this.models.Task.findOneAndUpdate({ _id: id, version: input.version }, { $set: changes, $inc: { version: 1 } }, { new: true, runValidators: true })
+      .lean()
+      .exec();
+    return row ? { kind: 'updated', task: mapTask(row) } : this.classifyMiss(id);
+  }
+
+  async complete(id: string, version: number): Promise<UpdateResult> {
+    let result: UpdateResult = { kind: 'missing' };
+    // BOUNDARY: The replica-set transaction keeps task and event atomic.
+    await this.connection.transaction(async (session) => {
+      // IMPORTANT: Do not run operations in parallel inside a MongoDB transaction.
+      const row = await this.models.Task.findOneAndUpdate({ _id: id, version }, { $set: { done: true, updatedAt: new Date() }, $inc: { version: 1 } }, { new: true, runValidators: true, session })
+        .lean()
+        .exec();
+      if (!row) {
+        result = await this.classifyMiss(id, session);
+        return;
+      }
+      // WHAT: Passing the same session includes the event in the transaction.
+      await this.models.TaskEvent.create([{ taskId: id, eventType: 'completed', payload: { previousVersion: version } }], { session });
+      result = { kind: 'updated', task: mapTask(row) };
+    });
+    return result;
+  }
+
+  async delete(id: string) {
+    // WHAT: Map MongoDB's delete count to the port's boolean contract.
+    const deleted = await this.models.Task.deleteOne({ _id: id }).exec();
+    return deleted.deletedCount === 1;
+  }
+
+  private async classifyMiss(id: string, session?: ClientSession): Promise<UpdateResult> {
+    // WHAT: Distinguish missing identity from a stale known identity.
+    const query = this.models.Task.exists({ _id: id });
+    if (session) query.session(session);
+    return (await query.exec()) ? { kind: 'conflict' } : { kind: 'missing' };
+  }
+}
+```
+
+Create `libs/backend/core/src/lib/persistence/mongoose-persistence.adapter.ts`:
+
+```ts
+// WHAT: Own a connection explicitly instead of using Mongoose's global singleton.
+import { createConnection } from 'mongoose';
+import type { AppConfig } from '../config.js';
+import { MongooseTaskRepository } from '../tasks/mongoose-task.repository.js';
+import { createMongoModels } from '../tasks/mongoose.models.js';
+import type { PersistenceAdapter } from './persistence.js';
+
+export class MongoosePersistenceAdapter implements PersistenceAdapter {
+  readonly kind = 'mongodb-mongoose' as const;
+  // WHAT: One connection owns a bounded MongoDB pool for this process.
+  private readonly connection = createConnection();
+  // WHAT: Models compile against this owned connection.
+  private readonly models = createMongoModels(this.connection);
+  // BOUNDARY: Expose only the shared repository port.
+  readonly tasks = new MongooseTaskRepository(this.connection, this.models);
+
+  constructor(private readonly config: AppConfig) {}
+
+  async connect() {
+    await this.connection.openUri(this.config.mongodbUrl, {
+      // WHY: Use the same per-process pool budget as the PostgreSQL adapter.
+      maxPoolSize: this.config.databasePoolMax,
+      // WHY: Fail startup promptly when topology selection cannot succeed.
+      serverSelectionTimeoutMS: 5_000,
+      // WHY: Development convenience must not build indexes implicitly in production.
+      autoIndex: this.config.nodeEnv !== 'production',
+    });
+  }
+
+  async disconnect() {
+    // WHAT: Close driver sockets during the shared graceful lifecycle.
+    await this.connection.close();
+  }
+
+  async checkReadiness() {
+    // CHECK: Require an open database and a successful server ping.
+    if (!this.connection.db) throw new Error('MongoDB connection is not open');
+    await this.connection.db.command({ ping: 1 });
+  }
+}
+```
+
+Finally, change only the selection factory:
+
+```ts
+import { MongoosePersistenceAdapter } from './mongoose-persistence.adapter.js';
+
+export function createPersistence(config: AppConfig): PersistenceAdapter {
+  // BOUNDARY: This is the only database-client conditional in the application.
+  if (config.databaseClient === 'mongoose') {
+    return new MongoosePersistenceAdapter(config);
+  }
+  // WHY: Prisma/PostgreSQL remains the default documented path.
+  return new PrismaPersistenceAdapter(config);
+}
+```
+
+Export the three new Mongoose modules from the backend index:
+
+```ts
+export * from './lib/persistence/mongoose-persistence.adapter.js';
+export * from './lib/tasks/mongoose-task.repository.js';
+export * from './lib/tasks/mongoose.models.js';
+```
+
+Then run the same repository contract suite against both real adapters. Do not weaken a test because MongoDB behaves differently; either implement the shared semantic or document that it does not belong in the common port.
+
+Create the native-driver exception `libs/backend/core/src/lib/tasks/plain-mongo.selectors.ts`:
+
+```ts
+import type { Connection } from 'mongoose';
+import type { MongoTaskRecord } from './mongoose.models.js';
+
+// WHAT: Describe only the projected fields returned by this native selector.
+export type RecentOpenMongoTask = Pick<MongoTaskRecord, '_id' | 'title' | 'createdAt'>;
+
+export async function selectRecentOpenTasksWithMongoDriver(connection: Connection, since: Date, limit: number) {
+  // CHECK: Callers validate values before this deliberately low-level helper.
+  if (!connection.db) throw new Error('MongoDB connection is not open');
+
+  // BOUNDARY: `.collection()` deliberately bypasses Mongoose casting and middleware.
+  return (
+    connection.db
+      .collection<MongoTaskRecord>('tasks')
+      .find(
+        // WHAT: Native selectors are data objects, not interpolated query strings.
+        { done: false, createdAt: { $gte: since } },
+        // WHY: Project only fields consumed by this reporting path.
+        { projection: { _id: 1, title: 1, createdAt: 1 } },
+      )
+      // WHY: Match compound-index order and keep ties deterministic.
+      .sort({ createdAt: -1, _id: 1 })
+      // WHY: Bound database work, transfer size, and application memory.
+      .limit(limit)
+      .toArray() as Promise<RecentOpenMongoTask[]>
+  );
+}
+```
+
+Export it from the backend index, then compare `.explain('executionStats')` before and after the compound index. This is the MongoDB equivalent of a deliberate raw SQL escape hatch—not a reason to bypass Mongoose everywhere.
+
+Branch 07 exit check: switching only `DATABASE_CLIENT` and its URL preserves HTTP contract, version conflict, task-plus-event rollback, list order, and tests; readiness names the selected adapter; Mongoose types never reach the service or React app; engine-specific query plans remain in adapter/native-selector lessons.
+
+#### Branch 08 — Harden HTTP, isolate CPU work, and add S3 upload boundaries
+
+Create `lesson/08-node-hardening-workers-s3` from Branch 07. Implement this branch as small commits in the order shown: configuration → middleware → CPU worker → proxy upload → presigned upload → direct-Node TLS example. Run `npm run check` after each increment so a security change never becomes an unreviewable pile.
+
+Declare only packages imported by this backend library:
+
+```bash
+npm pkg set 'dependencies.cors=^2.8.6' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.express-rate-limit=^8.6.2' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.helmet=^8.3.0' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.pino-http=^11.0.0' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.multer=^2.2.0' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.@aws-sdk/client-s3=^3.1115.0' --workspace @nx-fullstack-learning/backend-core
+npm pkg set 'dependencies.@aws-sdk/s3-request-presigner=^3.1115.0' --workspace @nx-fullstack-learning/backend-core
+```
+
+Add an empty-string normalizer near the top of `config.ts`:
+
+```ts
+// BOUNDARY: Treat an intentionally blank optional environment value as absent.
+const optionalString = z.preprocess((value) => (value === '' ? undefined : value), z.string().optional());
+```
+
+Add these fields to `EnvironmentSchema`, then mirror them in `AppConfig` and `loadConfig`:
+
+```ts
+// WHAT: Parse a comma-separated browser-origin allowlist at startup.
+CORS_ORIGINS: z.string().default('http://localhost:4200'),
+// SECRET: Leave the teaching API key absent locally; require real identity in production.
+API_KEY: optionalString,
+// WHAT: Select the region used by the S3 client and presigner.
+AWS_REGION: z.string().default('eu-central-1'),
+// WHAT: Keep upload capability disabled until a private bucket is configured.
+S3_UPLOAD_BUCKET: optionalString,
+
+// Add to AppConfig:
+corsOrigins: string[];
+apiKey?: string;
+awsRegion: string;
+s3UploadBucket?: string;
+
+// Add to loadConfig's return value:
+corsOrigins: parsed.CORS_ORIGINS.split(',').map((origin) => origin.trim()),
+apiKey: parsed.API_KEY,
+awsRegion: parsed.AWS_REGION,
+s3UploadBucket: parsed.S3_UPLOAD_BUCKET,
+```
+
+Create the corresponding non-secret teaching entries in `.env.example`; leave `API_KEY` and `S3_UPLOAD_BUCKET` empty until their exercises.
+
+Replace `libs/backend/core/src/lib/http/middleware.ts`:
+
+```ts
+// WHAT: Use constant-time comparison for equal-length secret byte sequences.
+import { timingSafeEqual } from 'node:crypto';
+import type { ErrorRequestHandler, RequestHandler } from 'express';
+import multer from 'multer';
+import { ZodError } from 'zod';
+import { HttpError } from '../errors.js';
+
+// BOUNDARY: Apply a small teaching authentication policy after public health routes.
+export function requireApiKey(expected?: string): RequestHandler {
+  return (request, _response, next) => {
+    // WHY: Local development remains usable until the environment configures a key.
+    if (!expected) return next();
+    const actual = request.header('x-api-key') ?? '';
+    const expectedBuffer = Buffer.from(expected);
+    const actualBuffer = Buffer.from(actual);
+    // SECURITY: Check length first because timingSafeEqual requires equal-sized buffers.
+    if (expectedBuffer.length !== actualBuffer.length || !timingSafeEqual(expectedBuffer, actualBuffer)) {
+      return next(new HttpError(401, 'Invalid API key', 'UNAUTHORIZED'));
+    }
+    return next();
+  };
+}
+
+// WHAT: Forward unmatched routes into the one error-translation boundary.
+export const notFound: RequestHandler = (request, _response, next) => {
+  next(new HttpError(404, `No route for ${request.method} ${request.path}`, 'ROUTE_NOT_FOUND'));
+};
+
+// BOUNDARY: Four arguments make this Express error-handling middleware.
+export const errorHandler: ErrorRequestHandler = (error: unknown, request, response, next) => {
+  // WHY: Once bytes were sent, only Express's default handler can fail the stream safely.
+  if (response.headersSent) return next(error);
+
+  if (error instanceof ZodError) {
+    response.status(400).json({
+      code: 'VALIDATION_ERROR',
+      message: 'Request validation failed',
+      requestId: request.id,
+      details: error.issues,
+    });
+    return;
+  }
+
+  if (error instanceof multer.MulterError) {
+    // WHAT: Distinguish an oversized payload from another malformed multipart request.
+    response.status(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400).json({
+      code: error.code,
+      message: error.message,
+      requestId: request.id,
+    });
+    return;
+  }
+
+  if (error instanceof HttpError) {
+    response.status(error.status).json({
+      code: error.code,
+      message: error.message,
+      requestId: request.id,
+      details: error.details,
+    });
+    return;
+  }
+
+  // SECURITY: Log the unknown error internally but return no stack or driver detail.
+  request.log.error({ err: error }, 'Unhandled request error');
+  response.status(500).json({
+    code: 'INTERNAL_ERROR',
+    message: 'Unexpected server error',
+    requestId: request.id,
+  });
+};
+```
+
+Create `libs/backend/core/src/lib/workers/fibonacci.ts`:
+
+```ts
+// WHAT: Worker threads execute CPU-bound JavaScript away from the HTTP event loop.
+import { Worker } from 'node:worker_threads';
+
+// SECURITY: This constant source contains no interpolated caller input.
+const workerSource = `
+  const { parentPort, workerData } = require('node:worker_threads');
+  function fibonacci(n) {
+    return n < 2 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+  }
+  parentPort.postMessage(fibonacci(workerData));
+`;
+
+// WHAT: Expose one bounded promise-based CPU capability to HTTP composition.
+export function fibonacciInWorker(input: number, timeoutMs = 5_000) {
+  return new Promise<number>((resolve, reject) => {
+    // BOUNDARY: Copy the validated number into a new worker's isolated context.
+    const worker = new Worker(workerSource, { eval: true, workerData: input });
+    // WHY: Bound abandoned or pathological CPU work.
+    const timeout = setTimeout(() => {
+      void worker.terminate();
+      reject(new Error('Worker timed out'));
+    }, timeoutMs);
+
+    worker.once('message', (result: number) => {
+      // WHAT: Prevent the timeout from racing a successful result.
+      clearTimeout(timeout);
+      resolve(result);
+    });
+    worker.once('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+  });
+}
+```
+
+This creates one worker per request for teaching clarity. Measure its startup overhead, then build a bounded reusable pool with queue length, task timeout, cancellation, worker replacement after failure, and overload rejection before calling it production-ready.
+
+Create `libs/backend/core/src/lib/http/uploads.router.ts`:
+
+```ts
+import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Router } from 'express';
+import multer from 'multer';
+import { z } from 'zod';
+import type { AppConfig } from '../config.js';
+import { HttpError } from '../errors.js';
+
+// WHY: Bound memory and API bandwidth for the proxy-upload teaching path.
+const maximumFileSize = 10 * 1024 * 1024;
+// BOUNDARY: Client MIME is allowlisted but is not proof of file content.
+const allowedTypes = new Set(['image/jpeg', 'image/png', 'application/pdf']);
+
+const PresignSchema = z.object({
+  fileName: z.string().trim().min(1).max(255),
+  contentType: z.string().refine((value) => allowedTypes.has(value), {
+    message: 'Only JPEG, PNG, and PDF files are allowed',
+  }),
+  // WHY: Signed metadata and product policy share the same size ceiling.
+  size: z.number().int().positive().max(maximumFileSize),
+});
+
+function objectKey(fileName: string) {
+  // SECURITY: Preserve only a small sanitized extension, never the caller's path/name.
+  const extension = extname(fileName)
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, '');
+  // WHY: Random immutable keys avoid overwrite races and user-controlled object paths.
+  return `uploads/${new Date().toISOString().slice(0, 10)}/${randomUUID()}${extension}`;
+}
+
+export function createUploadsRouter(config: AppConfig) {
+  const router = Router();
+  // WHAT: In ECS, the default credential chain uses the task role—no static key in code.
+  const client = new S3Client({ region: config.awsRegion });
+  const upload = multer({
+    // WHY: Memory storage is acceptable only because size and file count are tightly bounded.
+    storage: multer.memoryStorage(),
+    limits: { files: 1, fileSize: maximumFileSize },
+    // BOUNDARY: Reject MIME types outside the product allowlist.
+    fileFilter: (_request, file, callback) => callback(null, allowedTypes.has(file.mimetype)),
+  });
+
+  function bucket() {
+    // CHECK: Fail this capability explicitly rather than writing to an accidental bucket.
+    if (!config.s3UploadBucket) {
+      throw new HttpError(503, 'S3 upload is not configured', 'S3_NOT_CONFIGURED');
+    }
+    return config.s3UploadBucket;
+  }
+
+  router.post('/presign', async (request, response) => {
+    // BOUNDARY: Validate the requested upload capability before signing it.
+    const input = PresignSchema.parse(request.body);
+    const key = objectKey(input.fileName);
+    const command = new PutObjectCommand({
+      Bucket: bucket(),
+      Key: key,
+      ContentType: input.contentType,
+      ContentLength: input.size,
+    });
+    // SECURITY: The five-minute URL is a narrowly scoped bearer capability.
+    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
+    response.json({ data: { key, uploadUrl, expiresInSeconds: 300 } });
+  });
+
+  router.post('/', upload.single('file'), async (request, response) => {
+    // CHECK: Multer may accept the request while its configured field is absent.
+    if (!request.file) {
+      throw new HttpError(400, 'Attach one allowed file as “file”', 'FILE_REQUIRED');
+    }
+    const key = objectKey(request.file.originalname);
+    // BOUNDARY: Proxy bytes through Node only for the small-file exercise.
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket(),
+        Key: key,
+        Body: request.file.buffer,
+        ContentType: request.file.mimetype,
+      }),
+    );
+    response.status(201).json({ data: { key } });
+  });
+
+  return router;
+}
+```
+
+Now replace `libs/backend/core/src/lib/http/create-app.ts` with the complete hardened order:
+
+```ts
+import { randomUUID } from 'node:crypto';
+import cors from 'cors';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import { pinoHttp } from 'pino-http';
+import { z } from 'zod';
+import type { AppConfig } from '../config.js';
+import type { PersistenceAdapter } from '../persistence/persistence.js';
+import type { TaskService } from '../tasks/task.service.js';
+import { fibonacciInWorker } from '../workers/fibonacci.js';
+import { errorHandler, notFound, requireApiKey } from './middleware.js';
+import { createTasksRouter } from './tasks.router.js';
+import { createUploadsRouter } from './uploads.router.js';
+
+export type ApplicationDependencies = {
+  config: AppConfig;
+  persistence: Pick<PersistenceAdapter, 'kind' | 'checkReadiness'>;
+  taskService: TaskService;
+};
+
+export function createApp({ config, persistence, taskService }: ApplicationDependencies) {
+  const app = express();
+  app.disable('x-powered-by');
+  // BOUNDARY: Trust exactly the one AWS/local reverse-proxy hop used by this design.
+  app.set('trust proxy', 1);
+  // WHAT: Assign/carry a correlation id and emit structured request logs first.
+  app.use(
+    pinoHttp({
+      genReqId: (request) => request.headers['x-request-id']?.toString() ?? randomUUID(),
+      // SECURITY: Redact credentials before serialization, not after log ingestion.
+      redact: ['req.headers.authorization', 'req.headers.cookie', 'req.headers.x-api-key'],
+    }),
+  );
+  // SECURITY: Add defensive browser response headers.
+  app.use(helmet());
+  // BOUNDARY: CORS controls which browsers may read responses; it is not authentication.
+  app.use(
+    cors({
+      origin(origin, callback) {
+        callback(null, !origin || config.corsOrigins.includes(origin));
+      },
+      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    }),
+  );
+  // WHY: Bound abusive traffic per process; distributed enforcement needs a shared store.
+  app.use(
+    rateLimit({
+      windowMs: 60_000,
+      limit: 120,
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  );
+  // BOUNDARY: Parse only bounded JSON before application routes.
+  app.use(express.json({ limit: '100kb' }));
+
+  // CHECK: Load balancers can inspect process and dependency health without an API key.
+  app.get('/api/health/live', (_request, response) => response.json({ status: 'ok' }));
+  app.get('/api/health/ready', async (_request, response) => {
+    await persistence.checkReadiness();
+    response.json({ status: 'ready', persistence: persistence.kind });
+  });
+
+  // SECURITY: Authentication precedes every application capability below it.
+  app.use('/api', requireApiKey(config.apiKey));
+  app.use('/api/tasks', createTasksRouter(taskService));
+  app.use('/api/uploads', createUploadsRouter(config));
+  app.post('/api/tools/fibonacci', async (request, response) => {
+    // BOUNDARY: Bound CPU cost before creating a worker.
+    const { n } = z.object({ n: z.number().int().min(0).max(42) }).parse(request.body);
+    response.json({ data: { n, value: await fibonacciInWorker(n) } });
+  });
+
+  // WHAT: Terminal translation middleware remains last.
+  app.use(notFound);
+  app.use(errorHandler);
+  return app;
+}
+```
+
+Pass `config` into `createApp` in `apps/api/src/main.ts`, keeping its startup `try/catch` and lifecycle unchanged. Export the worker and upload router from the backend index:
+
+```ts
+export * from './lib/http/uploads.router.js';
+export * from './lib/workers/fibonacci.js';
+```
+
+Update `create-app.spec.ts` so the HTTP test still owns no real cloud or database resource:
+
+```ts
+// Add beside the existing imports.
+import type { AppConfig } from '../config.js';
+
+function setup() {
+  const taskService = new TaskService(new InMemoryTaskRepository());
+  // WHAT: Supply a complete, deterministic process configuration for composition tests.
+  const config: AppConfig = {
+    nodeEnv: 'test',
+    host: 'localhost',
+    port: 3000,
+    databaseClient: 'prisma',
+    databaseUrl: 'postgresql://unused:unused@localhost:5432/unused',
+    mongodbUrl: 'mongodb://localhost:27017/unused',
+    databasePoolMax: 1,
+    corsOrigins: ['http://localhost:4200'],
+    awsRegion: 'eu-central-1',
+    // CHECK: Omitted API key and bucket keep auth disabled and uploads unconfigured.
+  };
+  const persistence = {
+    kind: 'postgresql-prisma' as const,
+    checkReadiness: async () => undefined,
+  };
+  return createApp({ config, persistence, taskService });
+}
+```
+
+Create `apps/api/src/https-main.example.ts` as a learning-only transport composition:
+
+```ts
+import { readFileSync } from 'node:fs';
+import { createServer } from 'node:https';
+import type { Express } from 'express';
+
+// WHAT: Demonstrate direct Node TLS without replacing the normal AWS entry point.
+export function listenWithHttps(app: Express, port = 3443) {
+  return createServer(
+    {
+      // SECRET: Load the private key at runtime; never commit or bake it into an image.
+      key: readFileSync('./certs/localhost-key.pem'),
+      // WHAT: Present the matching public certificate.
+      cert: readFileSync('./certs/localhost-cert.pem'),
+      // WHY: Refuse obsolete TLS protocol versions.
+      minVersion: 'TLSv1.2',
+    },
+    // WHAT: Reuse the same Express application behind encrypted transport.
+    app,
+  ).listen(port);
+}
+```
+
+Branch 08 exercises:
+
+1. Send a known request id and prove the response error and redacted structured log correlate without exposing the API key.
+2. Compare main-thread Fibonacci and worker Fibonacci while a liveness probe runs; record event-loop delay and worker overhead.
+3. Upload an oversized file, a disallowed MIME, and no file; verify intentional 413/400 outcomes. Then use a presigned URL and prove bytes bypass Node.
+4. Inspect magic bytes and design quarantine/scanning before a file becomes downloadable; MIME and extension alone are not trust.
+5. Generate a local development certificate, inspect TLS, and draw where plaintext exists when ACM terminates TLS at CloudFront/ALB.
+
+Branch 08 exit check: middleware order matches the documented threat model, errors never leak internals, request IDs correlate, CPU work does not block liveness, upload bounds are enforced, presigned URLs expire, private keys are absent from Git, and SIGTERM still drains HTTP before either database pool closes.
+
+#### Branches 09–12 — Continue cumulatively through operations
+
+The remaining branches use the exact incremental authoring blocks in Parts 4–6; none of their files exists on `workshop/start`.
+
+| Branch                       | Create yourself                                                                | Follow in order | Required proof                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------ | --------------- | -------------------------------------------------------------------------------------- |
+| `lesson/09-container-images` | `.dockerignore`, API Dockerfile, web Dockerfile, Nginx config                  | 4.2A → 4.2D     | context comparison, image layers, non-root runtime, SPA refresh                        |
+| `lesson/10-compose-runtime`  | migration, API, web, and optional Mongo services in your existing Compose file | 4.3A → 4.4      | dependency health chain, DNS/port proof, one broken-service incident                   |
+| `lesson/11-ci-cd`            | CI workflow, OIDC trust, deploy workflow                                       | 5.1 → 5.3       | deliberate failing check, immutable image digest, staging health and rollback          |
+| `lesson/12-aws`              | budget and every named AWS resource/template                                   | 6.1 → 6.14      | cost alarm, least privilege, TLS/data path, observability, restore, teardown inventory |
+
+Do not branch those four directly from the starter. `lesson/12-aws` contains the application, both database adapters, security, uploads, Docker images, completed Compose runtime, and CI history because it descends from Branch 11.
 
 ## Part 0 — Scaffold and run the Nx workspace
 
@@ -323,7 +3130,7 @@ Exit check: explain the difference between a workspace, a project, a target, and
 
 ### Lesson 0.2 — Start the host processes before infrastructure exists
 
-Outcome: prove that the React and Node processes can start without pretending the database is ready. Docker is installed, but you do not use it yet. On the workshop starter branch, `compose.yaml` and both Dockerfiles must be absent.
+Outcome: prove that the untouched React and Node project shells run before you add lesson behavior. Docker, database schema, Compose, routes, Query hooks, and repositories are intentionally absent.
 
 Copy the documented development variables and inspect them before starting anything:
 
@@ -332,8 +3139,8 @@ Copy the documented development variables and inspect them before starting anyth
 cp .env.example .env
 # CHECK: Confirm Git will not include local values in a future commit.
 git check-ignore -v .env
-# CHECK: Read the selected adapter and URL; do not print real secrets in a shared terminal.
-grep -E '^(DATABASE_CLIENT|DATABASE_URL)=' .env
+# CHECK: The starter contains only the host and port used by the generated-style API shell.
+grep -E '^(HOST|PORT)=' .env
 ```
 
 Start both application processes on the host:
@@ -343,26 +3150,24 @@ Start both application processes on the host:
 npm run dev
 ```
 
-The web shell runs on `http://localhost:4200`; Vite proxies `/api` to the Node process on port 3000. The database-backed task page is expected to show an error because its dependency does not exist yet. That is useful evidence, not a setup failure.
+The web shell runs on `http://localhost:4200`; the minimal API runs on port 3000. The Vite proxy, health routes, task API, and database behavior do not exist yet because they are exercises.
 
 In a second terminal:
 
 ```bash
-# CHECK: Liveness should succeed because the event loop can answer without a database.
-curl -i http://localhost:3000/api/health/live
-# CHECK: Readiness should fail because this process must not receive task traffic yet.
-curl -i http://localhost:3000/api/health/ready
-# CHECK: A database-backed request should fail through the stable error boundary.
-curl -i 'http://localhost:3000/api/tasks?limit=2'
+# CHECK: Prove only the generated-style starter route promised by the current code.
+curl -i http://localhost:3000/api
+# CHECK: A task route is absent rather than secretly preimplemented.
+curl -i http://localhost:3000/api/tasks
 ```
 
-Why begin with failure: liveness and readiness answer different operational questions. If every missing dependency killed the process, an orchestrator could create a restart storm. If readiness stayed green, a load balancer would send traffic to an instance that cannot do useful work.
+The expected 404 for `/api/tasks` is evidence that the learner branch contains no hidden solution. You will add liveness with the first HTTP slice and readiness only after a real persistence adapter exists.
 
-Core lab (25 minutes): draw the request path for each command and record the expected status before running it. Verify that the web process remains usable enough to display an intentional error state. Do not create a Compose file to make the red state disappear yet.
+Core lab (25 minutes): run all four Nx targets, draw the two current processes, and record the starter response plus expected task 404. Do not create a Compose file yet.
 
 Senior challenge: stop only the API, observe the Vite proxy failure, restart it, and explain which evidence belongs to the browser, proxy, Node process, and database boundary.
 
-Exit check: provide one successful liveness response, one failed readiness response, and a short explanation of why “the process is alive” does not mean “the service should receive traffic.”
+Exit check: provide the starter web screenshot, successful `GET /api`, expected task 404, and a clean `npm run check`.
 
 ### Lesson 0.3 — Build the PostgreSQL Compose service from an empty file
 
@@ -523,7 +3328,7 @@ docker compose up database -d
 
 #### Exercise 0.3D — Apply schema from the host
 
-At this checkpoint, Node still runs on the host and there is intentionally no `migrate` container or application image. Apply reviewed schema history through the host toolchain:
+This is a deferred checkpoint. On `workshop/start`, Prisma configuration, schema, migration history, and seed are intentionally absent. Complete Lesson 2.4 first, then return here and run:
 
 ```bash
 # WHAT: Regenerate the typed client after checking out or changing the Prisma schema.
@@ -538,11 +3343,11 @@ docker compose exec database psql -U app -d learning -c \
 docker compose exec database psql -U app -d learning -c 'select count(*) from tasks;'
 ```
 
-If an earlier experiment created objects without migration history, do not mark migrations as applied merely to silence an error. Reset only disposable data. Otherwise back up, introspect and compare the schema, review the baseline, and use `prisma migrate resolve` only after proving the database already matches that migration.
+Before Lesson 2.4, these commands should fail because the files do not exist; that is intentional. After creating them, if an earlier experiment created objects without migration history, do not mark migrations as applied merely to silence an error. Reset only disposable data. Otherwise back up, introspect and compare the schema, review the baseline, and use `prisma migrate resolve` only after proving the database already matches that migration.
 
 #### Exercise 0.3E — Close the host-to-container loop
 
-Keep both apps on the host and point the API at the published PostgreSQL port:
+This is also deferred until Lesson 2.4 replaces the in-memory adapter with Prisma. Keep both apps on the host and point the API at the published PostgreSQL port:
 
 ```bash
 # CHECK: Readiness should now cross the driver pool and PostgreSQL successfully.
@@ -568,7 +3373,7 @@ Exit check: recreate the PostgreSQL-only `compose.yaml` from memory and explain 
 
 ### Lesson 1.1 — Routing as a loading boundary
 
-Read `apps/web/src/app/app.tsx`.
+Replace the starter `apps/web/src/app/app.tsx` and create the three page modules as you type this lesson. Do not copy them from `solution/reference`.
 
 ```tsx
 // WHAT: Convert this static page import into a separately downloadable build chunk.
@@ -617,7 +3422,7 @@ Use this decision table before adding a store:
 | Remote data with cache lifecycle       | TanStack Query        | Tasks from the API     |
 | Shareable navigation state             | URL                   | Search, page, sort     |
 
-Read `apps/web/src/pages/tasks-page.tsx`: `title` is local because no distant component needs it. Do not store derived values such as “number of open tasks” if you can calculate them from current data. Duplicated state eventually disagrees.
+Create `apps/web/src/pages/tasks-page.tsx`: keep `title` local because no distant component needs it. Do not store derived values such as “number of open tasks” if you can calculate them from current data. Duplicated state eventually disagrees.
 
 Lab: move the selected task filter into `?status=open` with `useSearchParams`. Refresh and share the URL. Compare that behavior with Zustand persistence.
 
@@ -625,7 +3430,7 @@ Exit check: for every state value in your feature, name its authoritative source
 
 ### Lesson 1.3 — Zustand for client state, with narrow selectors
 
-Read `apps/web/src/app/task.store.ts`.
+Create `apps/web/src/app/task.store.ts`.
 
 ```ts
 // BOUNDARY: Export one hook so components interact with policy, not storage details.
@@ -675,7 +3480,7 @@ Exit check: explain why actions belong beside store data and why async server-ca
 
 ### Lesson 1.4 — TanStack Query: query keys are cache addresses
 
-Read `apps/web/src/app/task.queries.ts` and `apps/web/src/main.tsx`.
+Create `apps/web/src/app/task.queries.ts`, then add the Query provider to `apps/web/src/main.tsx`.
 
 ```ts
 // WHAT: Centralize cache-address construction to prevent almost-identical ad hoc keys.
@@ -773,7 +3578,7 @@ Exit check: calculate requests per minute and approximate requests per second fo
 
 ### Lesson 1.6 — Shared components without a design-system detour
 
-Read `libs/frontend/ui/src/lib/button.tsx`.
+Create `libs/frontend/ui/src/lib/button.tsx`, export it from the library index, and replace the starter test with an interaction test.
 
 ```tsx
 // WHAT: Preserve native button attributes while adding a small visual vocabulary.
@@ -797,7 +3602,7 @@ Exit check: state the accessibility contract of each shared component, including
 
 ### Lesson 1.7 — Virtualize only after rendering is the bottleneck
 
-Read `apps/web/src/pages/performance-page.tsx`.
+Create `apps/web/src/pages/performance-page.tsx` only after recording the unvirtualized baseline.
 
 ```tsx
 // WHAT: Create a virtual window model from the full logical row collection.
@@ -827,7 +3632,7 @@ Exit check: state the thresholds and measurements that would justify this added 
 
 ### Lesson 2.1 — The composition root and separation of concerns
 
-Read `apps/api/src/main.ts`.
+Return to `apps/api/src/main.ts` after creating the contracts in Lessons 2.2–2.5, then replace the starter process shell with this composition root.
 
 ```ts
 // BOUNDARY: Parse environment input once and fail before the process accepts traffic.
@@ -867,7 +3672,7 @@ Exit check: draw the import arrows. No arrow should point from a lower policy la
 
 ### Lesson 2.2 — CRUD and HTTP semantics
 
-Read `libs/backend/core/src/lib/http/tasks.router.ts`.
+Create `libs/backend/core/src/lib/http/tasks.router.ts` after the service contract exists.
 
 | Operation | Route                   | Successful response               |
 | --------- | ----------------------- | --------------------------------- |
@@ -899,7 +3704,7 @@ Exit check: explain why a timeout does not prove the write failed.
 
 ### Lesson 2.3 — Zod validates at trust boundaries
 
-Read `libs/backend/core/src/lib/tasks/task.schema.ts` and `libs/backend/core/src/lib/config.ts`.
+Create `libs/backend/core/src/lib/tasks/task.schema.ts` first. Add `config.ts` only when the in-memory slice is ready to become a configurable process.
 
 ```ts
 // BOUNDARY: Parse an untrusted request body into the only accepted create shape.
@@ -932,7 +3737,7 @@ Exit check: add a cross-field rule and one test that proves it runs at runtime.
 
 ### Lesson 2.4 — Prisma ORM by default; raw SQL by exception
 
-Read `prisma/schema.prisma`, `prisma.config.ts`, and `libs/backend/core/src/lib/tasks/prisma-task.repository.ts`.
+Create `prisma/schema.prisma`, `prisma.config.ts`, and `libs/backend/core/src/lib/tasks/prisma-task.repository.ts`; none exists on the starter branch.
 
 Prisma 7 generates a typed client into the backend library. The database URL belongs in `prisma.config.ts` for CLI operations and is also passed to the PostgreSQL driver adapter at runtime. The schema contains no credentials.
 
@@ -989,7 +3794,7 @@ const rows = await prisma.task.findMany({
 
 Prisma-generated types are persistence types, not automatically your public API contract. The repository still maps dates to ISO strings and parses the database `priority` value through Zod. That mapping detects schema drift and prevents generated ORM types from spreading through services and routers.
 
-Keep raw SQL small and deliberate. Read `plain-sql.selectors.ts`:
+Keep raw SQL small and deliberate. Reopen the `plain-sql.selectors.ts` you created in Branch 05:
 
 ```ts
 // SECURITY: The tagged template sends `limit` as a value parameter, not SQL text.
@@ -1010,7 +3815,7 @@ Exit check: explain which layer owns the Prisma schema, generated client, domain
 
 ### Lesson 2.5 — One domain port, two persistence adapters
 
-Read `task.repository.ts`, `persistence/persistence.ts`, `create-persistence.ts`, `mongoose.models.ts`, and `mongoose-task.repository.ts`.
+Create `task.repository.ts` and an in-memory implementation for the first E2E slice. Create the persistence lifecycle port and concrete Prisma/Mongoose files only in their later database lessons.
 
 The service needs task persistence behavior, not an ORM. Start with the narrow domain-owned port:
 
@@ -1177,7 +3982,7 @@ Exit check: list the exact semantic promises in `TaskRepository`, then name thre
 
 ### Lesson 2.6 — Concurrency: I/O parallelism is not CPU parallelism
 
-Read `readStats()` in both persistence adapters and the `/api/stats` endpoint in `create-app.ts`.
+Create a database-neutral `readStats()` capability in the persistence port, implement it in both adapters, and then add `/api/stats` to `create-app.ts`.
 
 ```ts
 // WHAT: Start independent I/O operations together and await all three results.
@@ -1190,6 +3995,61 @@ const [taskCount, eventCount, databaseClock] = await Promise.all([
 ]);
 ```
 
+Use the same public shape in `persistence.ts`:
+
+```ts
+// WHAT: Keep statistics transport identical whichever engine supplies the values.
+export type PersistenceStats = {
+  tasks: number;
+  events: number;
+  databaseTime: string;
+};
+
+// Add to PersistenceAdapter:
+readStats(): Promise<PersistenceStats>;
+```
+
+Implement it in the Prisma adapter using the three operations above and return:
+
+```ts
+return {
+  tasks: taskCount,
+  events: eventCount,
+  // BOUNDARY: Convert database time to the public ISO-string contract.
+  databaseTime: databaseClock[0].now.toISOString(),
+};
+```
+
+Implement the equivalent in the Mongoose adapter:
+
+```ts
+if (!this.connection.db) throw new Error('MongoDB connection is not open');
+// WHY: Counts and server-time lookup are independent I/O waits.
+const [tasks, events, hello] = await Promise.all([
+  this.models.Task.countDocuments().exec(),
+  this.models.TaskEvent.countDocuments().exec(),
+  // CHECK: Ask the selected server for its clock rather than using API-process time.
+  this.connection.db.command({ hello: 1 }),
+]);
+const databaseTime = hello.localTime;
+// BOUNDARY: Refuse a driver response that does not meet the public contract.
+if (!(databaseTime instanceof Date)) {
+  throw new Error('MongoDB hello response did not include localTime');
+}
+return { tasks, events, databaseTime: databaseTime.toISOString() };
+```
+
+Expose only that port capability in `createApp`:
+
+```ts
+// Extend the existing Pick with `readStats`, then add this authenticated route.
+app.get('/api/stats', async (_request, response) => {
+  // BOUNDARY: HTTP sees stable statistics, not either database client.
+  const stats = await persistence.readStats();
+  response.json({ data: { ...stats, persistence: persistence.kind } });
+});
+```
+
 These queries are independent, so their waits can overlap. Neither Prisma nor Mongoose makes an unbounded workload safe: each driver still has a finite pool. `Promise.all` is fail-fast; it does not make JavaScript CPU work run on multiple cores. Unbounded `Promise.all` over thousands of inputs can exhaust connections, memory, file descriptors, or a downstream rate limit. Bound concurrency with a queue, semaphore, or worker count derived from the constrained resource.
 
 The Node event loop handles many concurrent I/O operations efficiently when each callback does little synchronous work. Large JSON parsing, unsafe regular expressions, sync filesystem calls, and CPU-heavy loops block every request handled by that process.
@@ -1200,7 +4060,7 @@ Exit check: distinguish event-loop concurrency, libuv’s worker pool, `worker_t
 
 ### Lesson 2.7 — Worker threads for bounded CPU work
 
-Read `libs/backend/core/src/lib/workers/fibonacci.ts`.
+Create `libs/backend/core/src/lib/workers/fibonacci.ts` after measuring the blocking main-thread implementation.
 
 ```ts
 // WHAT: Start a separate JavaScript thread with validated, cloneable input.
@@ -1276,7 +4136,7 @@ Exit check: explain when you would instead use `SELECT ... FOR UPDATE` and the c
 
 ### Lesson 2.9 — Middleware order is part of the security model
 
-Read `libs/backend/core/src/lib/http/create-app.ts` from top to bottom:
+Create `libs/backend/core/src/lib/http/create-app.ts` one middleware at a time in the order below:
 
 ```text
 request ID + structured logging
@@ -1324,7 +4184,7 @@ Exit check: write a threat model covering asset, actor, entry point, control, re
 
 ### Lesson 2.10 — HTTPS and where TLS terminates
 
-Read `apps/api/src/https-main.example.ts` for direct Node HTTPS:
+Create `apps/api/src/https-main.example.ts` as a separate learning entry; do not change the normal local/AWS entry:
 
 ```ts
 // WHAT: Create an HTTPS server only for the direct-Node TLS learning variant.
@@ -1353,7 +4213,7 @@ Exit check: draw the plaintext and encrypted segments for browser → CloudFront
 
 ### Lesson 2.11 — Error handling and graceful lifecycle
 
-Read `errors.ts`, `middleware.ts`, and `apps/api/src/main.ts`.
+Create `errors.ts` and `middleware.ts`, then refactor `apps/api/src/main.ts` for controlled startup and shutdown.
 
 Expected errors have stable status and code. Unexpected errors are logged with context but return a generic message so stack traces and internals are not exposed.
 
@@ -1376,7 +4236,7 @@ Exit check: define retry policy by error class. Never retry validation errors; r
 
 ### Lesson 2.12 — File uploads to S3
 
-Read `libs/backend/core/src/lib/http/uploads.router.ts`. It contains two patterns.
+Create `libs/backend/core/src/lib/http/uploads.router.ts` in two increments: proxy upload first, then presigned direct upload.
 
 **Proxy upload through Node:**
 
@@ -1446,7 +4306,7 @@ Exit check: for every mock, state which real failure it can no longer detect.
 
 ### Lesson 3.1 — Prisma schema, database constraints, and CRUD translation
 
-Read `prisma/schema.prisma` and `prisma/migrations/20260821000000_init/migration.sql`. The Prisma model drives generated TypeScript, while the reviewed migration adds database constraints that remain authoritative if a buggy client bypasses Zod:
+Extend the `prisma/schema.prisma` you created and generate `prisma/migrations/.../migration.sql`. The Prisma model drives generated TypeScript, while the reviewed migration adds database constraints that remain authoritative if a buggy client bypasses Zod:
 
 ```prisma
 // WHAT: Give application code domain-friendly names while preserving SQL table names.
@@ -1586,7 +4446,47 @@ Exit check: explain why retrying only the last SQL statement can violate a multi
 
 ### Lesson 3.3 — Database polling and competing workers
 
-`infra/postgres/advanced-lab.sql` contains an atomic queue claim:
+Do not query a table that a hidden solution created. First extend `prisma/schema.prisma` with the durable queue model:
+
+```prisma
+// WHAT: Store retryable background work independently of a Node process lifetime.
+model JobQueue {
+  id          BigInt    @id @default(autoincrement())
+  payload     Json
+  status      String    @default("pending") @db.VarChar(20)
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now()) @map("available_at") @db.Timestamptz(6)
+  lockedAt    DateTime? @map("locked_at") @db.Timestamptz(6)
+  lockedBy    String?   @map("locked_by")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("job_queue")
+}
+```
+
+Generate `add-job-queue` with `--create-only`, then add a status check constraint (including the required comma after the preceding table constraint) and a partial polling index to the generated migration before applying it:
+
+```bash
+# WHAT: Create the reviewable migration without applying an unfinished constraint.
+npx prisma migrate dev --name add-job-queue --create-only
+```
+
+```sql
+-- INVARIANT: Every writer uses one supported lifecycle state.
+CONSTRAINT "job_queue_status_supported"
+  CHECK ("status" IN ('pending', 'processing', 'done', 'failed'))
+
+-- WHY: Match claim eligibility and deterministic order while excluding cold history.
+CREATE INDEX "idx_job_queue_poll"
+  ON "job_queue"("available_at", "id") WHERE "status" = 'pending';
+```
+
+```bash
+# BOUNDARY: After editing/reviewing its SQL, apply it and regenerate the client.
+npx prisma migrate dev && npm run prisma:generate
+```
+
+Create `infra/postgres/advanced-lab.sql` and type its first statement, an atomic queue claim:
 
 ```sql
 -- WHAT: Select a small claimable batch while locking only the chosen rows.
@@ -1630,7 +4530,7 @@ Exit check: describe the crash window between an S3 side effect and marking the 
 
 ### Lesson 3.4 — Indexing: optimize measured access paths
 
-Run the first query in `advanced-lab.sql`:
+Append this measured selector to the `advanced-lab.sql` you created, then run it:
 
 ```sql
 -- WHAT: Execute the query and report planner estimates plus real I/O/runtime evidence.
@@ -1728,7 +4628,7 @@ Exit check: calculate the global connection maximum for your desired ECS autosca
 
 ### Lesson 3.6 — Partitioning is not sharding
 
-`advanced-lab.sql` creates a range-partitioned audit table:
+Append a range-partitioned audit-table exercise to `advanced-lab.sql`:
 
 ```sql
 -- WHAT: Define one logical audit table whose physical children are time ranges.
@@ -2080,7 +4980,7 @@ Exit check: explain the difference between starting `mongod` with replica-set mo
 
 ### Lesson 3B.1 — Document modelling and layered validation
 
-Read `mongoose.models.ts` and `task.schema.ts`.
+Create `mongoose.models.ts` against the domain schema you already own; do not change the HTTP schema to accommodate Mongoose.
 
 MongoDB stores BSON documents; Mongoose adds schemas, casting, middleware, validation, model methods, and query construction in Node. The task document is intentionally flat because the current API reads and writes a task as one aggregate. The completion event stays in a separate collection because it grows independently and is queried as history.
 
@@ -2218,7 +5118,7 @@ Exit check: name what Mongoose casting/middleware you lose when using `connectio
 
 MongoDB writes to one document atomically. The version-filtered update therefore needs no multi-document transaction. Completing a task also inserts a separate event, so that use case does need a transaction to preserve the repository contract.
 
-Read `MongooseTaskRepository.complete()`:
+Implement `MongooseTaskRepository.complete()` only after ordinary MongoDB CRUD passes the shared contract:
 
 ```ts
 // BOUNDARY: Let Mongoose begin, commit/abort, and retry supported transient failures.
@@ -3175,12 +6075,26 @@ Exit check: produce a five-minute triage checklist that starts with impact and r
 
 ### Lesson 5.1 — Continuous integration
 
-Read `.github/workflows/ci.yml`.
+Create `.github/workflows/ci.yml`; the starter intentionally has no workflow answer.
 
 ```yaml
+# WHAT: Give this workflow a stable name in checks and concurrency groups.
+name: CI
+
+# BOUNDARY: Verify every pull request and every commit entering the protected branch.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
 # SECURITY: Give the workflow token only read access unless a job proves it needs more.
 permissions:
   contents: read
+
+# WHY: Cancel obsolete verification after a newer commit arrives on the same ref.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # WHAT: Group related work under one independently schedulable job.
 jobs:
@@ -3203,8 +6117,21 @@ jobs:
       - run: npm ci
       # CHECK: Validate models/relations and rebuild the client used by compilation.
       - run: npm run prisma:validate && npm run prisma:generate
-      # CHECK: Prove static policy, behavior, types, and production output together.
-      - run: npx nx run-many -t lint,test,typecheck,build
+      # CHECK: Use the repository's ordered check so type emission and builds do not race.
+      - run: npm run check
+      # SECURITY: Fail only on high production advisories; triage full audit separately.
+      - run: npm audit --omit=dev --omit=optional --audit-level=high
+
+  # WHAT: Build images only after the application contract is green.
+  container-builds:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v6
+      # CHECK: Build the exact learner-authored API Dockerfile with an immutable commit tag.
+      - run: docker build -f apps/api/Dockerfile -t learning-api:${{ github.sha }} .
+      # CHECK: Build the independently served frontend artifact/image.
+      - run: docker build -f apps/web/Dockerfile -t learning-web:${{ github.sha }} .
 ```
 
 The small learning workspace verifies all projects. Larger repositories should use `nx affected` with correct base/head commits, retain a periodic full build, and consider remote caching only after understanding trust boundaries for cached artifacts.
@@ -3225,7 +6152,7 @@ Lab: change only `frontend/ui`, run `npx nx affected -t test --base=HEAD~1 --hea
 When you implement the reusable repository contract suite from Lesson 2.5, add a separate integration job with real disposable services. Keep this slower boundary distinct from the fast unit/static job:
 
 ```yaml
-# WHAT: Prove both concrete adapters satisfy the same product-level repository contract.
+# WHAT: Add this as a sibling job under the existing top-level `jobs` map.
 repository-contract:
   # WHY: Use an isolated runner because these tests own real database state.
   runs-on: ubuntu-latest
@@ -3280,7 +6207,7 @@ Exit check: identify which input changes invalidate each build output.
 
 ### Lesson 5.2 — Deployment with GitHub OIDC, not stored AWS keys
 
-Read `.github/workflows/deploy.yml` and `infra/aws/github-oidc-trust-policy.json`.
+Create `.github/workflows/deploy.yml` and `infra/aws/github-oidc-trust-policy.json` after CI is green.
 
 The workflow requests an OIDC token and exchanges it for short-lived AWS credentials:
 
@@ -3319,6 +6246,144 @@ The deployment then:
 6. Invalidates only CloudFront HTML paths.
 
 The migration step needs repository variables `ECS_PRIVATE_SUBNET_IDS` (comma-separated subnet ids) and `ECS_SECURITY_GROUP_ID`, plus least-privilege `ecs:RegisterTaskDefinition`, `ecs:RunTask`, `ecs:DescribeTasks`, and `iam:PassRole` for only the migration execution role. It uses `infra/aws/ecs-migration-task-definition.json`, reads `DATABASE_URL` from Secrets Manager, and runs before new application tasks receive traffic.
+
+After creating the IAM/environment prerequisites, type the complete `.github/workflows/deploy.yml` rather than trying to infer the missing workflow structure from the excerpt above:
+
+```yaml
+# WHAT: Give the protected deployment workflow a stable identity.
+name: Deploy production
+
+# BOUNDARY: Permit manual recovery and deployment only from the protected main branch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# SECURITY: Read source and request an OIDC identity; grant no repository writes.
+permissions:
+  contents: read
+  id-token: write
+
+# WHY: Never cancel an in-progress production mutation for a newer commit.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+# WHAT: Centralize non-secret deployment identifiers.
+env:
+  AWS_REGION: eu-central-1
+  ECR_REPOSITORY: nx-learning-api
+  ECS_CLUSTER: nx-learning
+  ECS_SERVICE: nx-learning-api
+  ECS_CONTAINER: api
+
+jobs:
+  deploy:
+    # BOUNDARY: GitHub environment approval and subject policy apply to this job.
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # WHY: Reproduce the lockfile before verifying or packaging anything.
+      - run: npm ci
+      - name: Generate the Prisma client used by verification and the API build
+        env:
+          # WHY: Generation needs valid URL syntax but does not connect.
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: npm run prisma:generate
+      # CHECK: Deployment cannot compensate for a broken application contract.
+      - run: npm run check
+
+      - name: Exchange GitHub OIDC identity for short-lived AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+
+      - id: ecr
+        # WHAT: Authenticate Docker to the account/Region registry without a stored password.
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push immutable runtime and migration images
+        id: api-image
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          MIGRATION_IMAGE: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}-migration
+        run: |
+          docker build -f apps/api/Dockerfile -t "$IMAGE" .
+          docker push "$IMAGE"
+          docker build --target migration -f apps/api/Dockerfile -t "$MIGRATION_IMAGE" .
+          docker push "$MIGRATION_IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "migration-image=$MIGRATION_IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Insert migration image into the one-shot task definition
+        id: migration-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.9.0
+        with:
+          task-definition: infra/aws/ecs-migration-task-definition.json
+          container-name: migrate
+          image: ${{ steps.api-image.outputs.migration-image }}
+
+      - name: Apply reviewed migrations inside the application VPC
+        env:
+          MIGRATION_TASK_DEFINITION: ${{ steps.migration-task-definition.outputs.task-definition }}
+          ECS_PRIVATE_SUBNET_IDS: ${{ vars.ECS_PRIVATE_SUBNET_IDS }}
+          ECS_SECURITY_GROUP_ID: ${{ vars.ECS_SECURITY_GROUP_ID }}
+        run: |
+          TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "file://$MIGRATION_TASK_DEFINITION" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --task-definition "$TASK_DEFINITION_ARN" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[$ECS_PRIVATE_SUBNET_IDS],securityGroups=[$ECS_SECURITY_GROUP_ID],assignPublicIp=DISABLED}" \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          test "$TASK_ARN" != "None"
+          aws ecs wait tasks-stopped --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN"
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0].containers[?name==`migrate`].exitCode | [0]' \
+            --output text)
+          test "$EXIT_CODE" -eq 0
+
+      - name: Insert the runtime image into the service task definition
+        id: task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.9.0
+        with:
+          task-definition: infra/aws/ecs-task-definition.json
+          container-name: ${{ env.ECS_CONTAINER }}
+          image: ${{ steps.api-image.outputs.image }}
+
+      - name: Deploy the API and wait for healthy ECS tasks
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-definition.outputs.task-definition }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.ECS_SERVICE }}
+          wait-for-service-stability: true
+          wait-max-delay-seconds: 15
+
+      - name: Publish the frontend build to its private S3 origin
+        run: aws s3 sync apps/web/dist "s3://${{ vars.WEB_BUCKET }}" --delete
+
+      - name: Invalidate only CloudFront HTML entry points
+        run: >-
+          aws cloudfront create-invalidation
+          --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          --paths "/" "/index.html"
+```
 
 Lab: add a staging environment with a separate role, ECS service, buckets, variables, and approval policy. Never make staging and production share a deploy role “for convenience.”
 
@@ -3394,6 +6459,31 @@ Console:
 
 CLI alternative for the budget object:
 
+Create `infra/aws/budget.json`. JSON has no comments, so read the fields first: `BudgetLimit` is the monthly USD threshold you personally accept; the type/time unit choose actual monthly cost; the `CostTypes` flags say which charge classes participate. Change `25` before creation if that is not your limit.
+
+```json
+{
+  "BudgetName": "nx-learning-monthly-cost",
+  "BudgetLimit": { "Amount": "25", "Unit": "USD" },
+  "BudgetType": "COST",
+  "TimeUnit": "MONTHLY",
+  "CostFilters": {},
+  "CostTypes": {
+    "IncludeTax": true,
+    "IncludeSubscription": true,
+    "UseBlended": false,
+    "IncludeRefund": false,
+    "IncludeCredit": false,
+    "IncludeUpfront": true,
+    "IncludeRecurring": true,
+    "IncludeOtherSubscription": true,
+    "IncludeSupport": true,
+    "IncludeDiscount": true,
+    "UseAmortized": false
+  }
+}
+```
+
 ```bash
 # WHAT: Resolve the authenticated account dynamically instead of hard-coding its id.
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -3425,6 +6515,38 @@ GitHub OIDC provider:
 6. Replace placeholders in `infra/aws/github-oidc-trust-policy.json` with account, owner, owner ID, repository, and repository ID. Use the environment subject that matches your repository.
 7. Attach a custom least-privilege deployment policy for only this ECR repository, ECS service/task family, web bucket, CloudFront distribution, required `iam:PassRole` roles, and log/task-definition actions.
 8. In GitHub, create environment `production`, add required reviewers, add secret `AWS_DEPLOY_ROLE_ARN`, and variables `AWS_ACCOUNT_ID`, `WEB_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `ECS_PRIVATE_SUBNET_IDS`, and `ECS_SECURITY_GROUP_ID`.
+
+Create `infra/aws/github-oidc-trust-policy.json`. Replace every angle-bracket placeholder with the immutable account/owner/repository values you verified. `Principal` names the one GitHub OIDC provider in your account; `Action` permits only web-identity assumption; `aud` restricts the AWS STS audience; `sub` restricts the exact repository and protected environment. This is strict JSON and must not contain comments.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:sub": "repo:<ORG>@<ORG_ID>/<REPO>@<REPO_ID>:environment:production"
+        }
+      }
+    }
+  ]
+}
+```
+
+```bash
+# CHECK: Reject malformed JSON before sending a trust policy to IAM.
+python3 -m json.tool infra/aws/github-oidc-trust-policy.json
+# BOUNDARY: Create the role only after checking its exact subject against GitHub's token.
+aws iam create-role \
+  --role-name nx-learning-github-deploy \
+  --assume-role-policy-document file://infra/aws/github-oidc-trust-policy.json
+```
 
 Separate roles:
 
@@ -3601,6 +6723,103 @@ Before creating the service:
 2. Replace placeholders in `infra/aws/ecs-task-definition.json`.
 3. Create the execution role and task role described earlier.
 4. Put `DATABASE_URL` and any temporary teaching API key in Secrets Manager. Prefer separate username/password fields or managed RDS secrets in a mature design.
+
+Create `infra/aws/ecs-task-definition.json`. Replace account, domain, bucket, image, and secret placeholders. At task level, `awsvpc` and `FARGATE` select the networking/compute contract; CPU/memory are the smallest teaching size and must be measured; execution role pulls/logs/secrets while task role authorizes application S3 calls. Inside the container, public configuration stays in `environment`, sensitive values use `secrets`, health is process-local liveness, logs go to the finite-retention group, and the root filesystem is read-only. JSON cannot contain comments.
+
+```json
+{
+  "family": "nx-learning-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/nx-learning-ecs-execution",
+  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/nx-learning-api-task",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "<ACCOUNT_ID>.dkr.ecr.eu-central-1.amazonaws.com/nx-learning-api:bootstrap",
+      "essential": true,
+      "portMappings": [{ "containerPort": 3000, "hostPort": 3000, "protocol": "tcp" }],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "HOST", "value": "0.0.0.0" },
+        { "name": "PORT", "value": "3000" },
+        { "name": "DATABASE_CLIENT", "value": "prisma" },
+        { "name": "AWS_REGION", "value": "eu-central-1" },
+        { "name": "CORS_ORIGINS", "value": "https://app.example.com" },
+        { "name": "S3_UPLOAD_BUCKET", "value": "nx-learning-uploads" }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:<ACCOUNT_ID>:secret:nx-learning/database-url"
+        },
+        {
+          "name": "API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:<ACCOUNT_ID>:secret:nx-learning/api-key"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))\""],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/nx-learning-api",
+          "awslogs-region": "eu-central-1",
+          "awslogs-stream-prefix": "api"
+        }
+      },
+      "readonlyRootFilesystem": true
+    }
+  ]
+}
+```
+
+Create `infra/aws/ecs-migration-task-definition.json` separately. It has no application task role or port because it performs finite schema work, but it still needs the execution role, private network access supplied by `run-task`, the database secret, and logs:
+
+```json
+{
+  "family": "nx-learning-migration",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/nx-learning-ecs-execution",
+  "containerDefinitions": [
+    {
+      "name": "migrate",
+      "image": "<ACCOUNT_ID>.dkr.ecr.eu-central-1.amazonaws.com/nx-learning-api:bootstrap-migration",
+      "essential": true,
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:<ACCOUNT_ID>:secret:nx-learning/database-url"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/nx-learning-api",
+          "awslogs-region": "eu-central-1",
+          "awslogs-stream-prefix": "migration"
+        }
+      }
+    }
+  ]
+}
+```
+
+```bash
+# CHECK: Validate both strict JSON documents locally before AWS calls.
+python3 -m json.tool infra/aws/ecs-task-definition.json
+python3 -m json.tool infra/aws/ecs-migration-task-definition.json
+```
 
 Register the task definition:
 
