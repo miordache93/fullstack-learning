@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@nx-fullstack-learning/frontend-ui": "*"
+    "@nx-fullstack-learning/frontend-ui": "*",
+    "react-router-dom": "7.18.2"
   }
 }

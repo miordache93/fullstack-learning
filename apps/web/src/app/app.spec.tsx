@@ -1,10 +1,17 @@
+// WHAT: Test the public route result with an in-memory history owner.
 import { render, screen } from '@testing-library/react';
-import { App } from './app';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import App from './app';
 
-// CHECK: Preserve one scaffold smoke test while lesson-specific tests are still absent.
-it('renders the workshop starter', () => {
-  render(<App />);
-  expect(
-    screen.getByRole('heading', { name: /workshop starter/i }),
-  ).toBeTruthy();
+describe('App routing', () => {
+  it('loads the task route at the root location', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    );
+    // CHECK: `findByRole` waits for the lazy route chunk to resolve.
+    expect(await screen.findByRole('heading', { name: 'Tasks' })).toBeTruthy();
+  });
 });

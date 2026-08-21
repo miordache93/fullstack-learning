@@ -1,2 +1,3 @@
-// STARTER: Export shared components only after you build them in the UI-library lesson.
-export {};
+// BOUNDARY: Consumers import from the library contract, not private folders.
+export * from './lib/button';
+export * from './lib/page-state';
