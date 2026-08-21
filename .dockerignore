@@ -1,9 +1,0 @@
-.git
-.github
-.nx
-**/dist
-**/test-output
-node_modules
-npm-debug.log
-.env
-*.md

@@ -2,19 +2,21 @@
 
 A minimal UI and production-minded curriculum covering React, Node.js, Prisma/PostgreSQL, Mongoose/MongoDB, Docker, GitHub Actions, and AWS.
 
-Start with [FULLSTACK_TUTORIAL.md](./FULLSTACK_TUTORIAL.md). It contains the lesson order, heavily annotated copy-paste examples, exercises, AWS console walkthroughs, verification checks, and primary sources. The `WHAT`, `WHY`, `BOUNDARY`, `CHECK`, and `TODO` comments are teaching aids: type the implementation yourself, use the finished repository only as a reference, and keep only non-obvious decision comments in production-style code.
+Start with [FULLSTACK_TUTORIAL.md](./FULLSTACK_TUTORIAL.md). It contains the lesson order, annotated application examples, learner-authored infrastructure exercises, AWS console walkthroughs, verification checks, and primary sources. The `WHAT`, `WHY`, `BOUNDARY`, `CHECK`, and `TODO` comments are teaching aids: type the implementation yourself and keep only non-obvious decision comments in production-style code.
 
-## Quick start
+## Start the learning path
 
 ```bash
 cp .env.example .env
 npm ci
-docker compose up --build
+npm run dev
 ```
 
-Open `http://localhost:8080`.
+Open `http://localhost:4200`. API liveness should work while database readiness initially fails; Lesson 0.3 then asks you to create `compose.yaml` yourself and add PostgreSQL one concern at a time.
 
-For local app processes with only PostgreSQL in Docker:
+`compose.yaml`, `.dockerignore`, both application Dockerfiles, the Nginx configuration, and the MongoDB topology script are intentionally absent. You create them progressively in Lessons 0.3, 3B.0, 4.2, and 4.3 from requirements and verification checks rather than completed answers.
+
+After building the PostgreSQL service in Lesson 0.3, run local application processes against it:
 
 ```bash
 docker compose up database -d
@@ -24,12 +26,22 @@ npm run prisma:generate
 npm run dev
 ```
 
-The web app is at `http://localhost:4200` and the API at `http://localhost:3000`.
+The host web app is at `http://localhost:4200` and the host API at `http://localhost:3000`.
+
+After writing the migration, image, and service files in Part 4, smoke-test the stack you assembled:
+
+```bash
+# CHECK: Build the images and reconcile the final dependency graph you created.
+docker compose up --build -d --wait
+# CHECK: Cross Nginx, the API readiness boundary, and PostgreSQL through one URL.
+curl http://localhost:8080/api/health/ready
+```
 
 For the optional MongoDB/Mongoose path, run the one-node replica-set lab and the
 same API on port 3001:
 
 ```bash
+# CHECKPOINT: Use this convenience script only after building `api-mongo` in Lesson 4.3.
 # WHAT: Initialize MongoDB, its replica set, indexes, and the Mongoose-backed API.
 npm run docker:mongo
 # CHECK: The response identifies the adapter selected only at process composition.
@@ -39,9 +51,7 @@ curl http://localhost:3001/api/health/ready
 To run the API on the host instead, start `mongodb` and `mongo-setup`, then set
 `DATABASE_CLIENT=mongoose` using the documented `MONGODB_URL` from `.env.example`.
 
-Before any deployment, read the dependency-advisory snapshot in the tutorial. The
-generated React Router 6.30.3 dependency should be upgraded to the patched 6.30.6
-release and the suite rerun.
+Before any deployment, rerun both production and full dependency audits and read the time-stamped risk disposition in the tutorial; advisory state changes over time.
 
 ## Verify
 
