@@ -159,6 +159,8 @@ Use the same loop for every integrated lab:
 6. **Recover:** remove the fault and prove the invariant still holds.
 7. **Explain:** write a three-sentence tradeoff or teach it to a partner without reading the tutorial.
 
+Every numbered lesson also contains exactly two **Additional exercises**. They are an exercise bank, not two new hidden prerequisites: complete both during self-study, or let summit facilitators select one as the senior/expert breakout while the core group protects the dependency-ordered exit check. Any exercise that changes a shared contract must still be committed cumulatively before a later branch depends on it.
+
 For pairs, swap driver and navigator after step 3. The navigator owns the prediction and watches for copy/paste without understanding; the driver owns the keyboard. For senior/expert tables, add an observer who challenges the failure model and the evidence.
 
 ### Summit definition of done
@@ -3126,6 +3128,11 @@ frontend-ui
 backend-core
 ```
 
+Additional exercises:
+
+1. Add a temporary forbidden import from `frontend/ui` to `apps/api`, inspect the Nx project graph, then remove it and write the dependency rule that should prevent it permanently.
+2. Change one source file, compare `npx nx show project <project>` before and after, and record which cached tasks invalidate and which remain reusable.
+
 Exit check: explain the difference between a workspace, a project, a target, and a task. Then run one target twice and observe Nx’s cache.
 
 ### Lesson 0.2 — Start the host processes before infrastructure exists
@@ -3166,6 +3173,11 @@ The expected 404 for `/api/tasks` is evidence that the learner branch contains n
 Core lab (25 minutes): run all four Nx targets, draw the two current processes, and record the starter response plus expected task 404. Do not create a Compose file yet.
 
 Senior challenge: stop only the API, observe the Vite proxy failure, restart it, and explain which evidence belongs to the browser, proxy, Node process, and database boundary.
+
+Additional exercises:
+
+1. Start the API with `PORT=3100`, prove the original port closes, and identify every later configuration point that must not hard-code port 3000.
+2. Send `SIGTERM` to the starter API while issuing repeated requests, capture the abrupt behavior, and save it as the baseline for the graceful-shutdown lesson.
 
 Exit check: provide the starter web screenshot, successful `GET /api`, expected task 404, and a clean `npm run check`.
 
@@ -3367,6 +3379,11 @@ Core lab evidence: keep the normalized Compose model, the health transition, the
 
 Senior challenge: remove the published port and explain why `docker compose exec database psql ...` still works while the host Node process cannot connect. Restore the port; later the containerized API will use Compose DNS and no longer need PostgreSQL published to the host.
 
+Additional exercises:
+
+1. Create a second disposable Compose project name with `-p`, compare its network and volume names, and explain how project scoping prevents workshop pairs from colliding.
+2. Add a CPU or memory limit, run a controlled PostgreSQL workload, and capture container statistics plus the failure/recovery behavior before deciding whether the limit is credible.
+
 Exit check: recreate the PostgreSQL-only `compose.yaml` from memory and explain image, container, service, port publication, health check, default network, and named volume without reading the earlier snippet.
 
 ## Part 1 — React from intermediate to expert
@@ -3408,6 +3425,11 @@ find apps/web/dist/assets -maxdepth 1 -type f
 
 Find separate `tasks-page`, `performance-page`, and `architecture-page` chunks. In browser DevTools, enable network throttling and navigate between routes.
 
+Additional exercises:
+
+1. Add a lazy route whose module intentionally rejects, provide a route-level recovery UI, and prove one failed chunk does not blank the whole application.
+2. Measure initial JavaScript transfer and route-navigation transfer before and after making every page eager; retain the bundle report and justify the chosen boundary.
+
 Exit check: identify the difference between route code loading, data loading, and image loading. They need different caching and fallback strategies.
 
 ### Lesson 1.2 — Choose the smallest correct state owner
@@ -3425,6 +3447,11 @@ Use this decision table before adding a store:
 Create `apps/web/src/pages/tasks-page.tsx`: keep `title` local because no distant component needs it. Do not store derived values such as “number of open tasks” if you can calculate them from current data. Duplicated state eventually disagrees.
 
 Lab: move the selected task filter into `?status=open` with `useSearchParams`. Refresh and share the URL. Compare that behavior with Zustand persistence.
+
+Additional exercises:
+
+1. Move filter state from Zustand into the URL, open the same URL in a second tab, and compare shareability, persistence, and back-button behavior.
+2. Introduce one duplicated derived count deliberately, make it stale, then replace it with a calculation and add a test that prevents the regression.
 
 Exit check: for every state value in your feature, name its authoritative source and lifetime.
 
@@ -3475,6 +3502,11 @@ const setFilter = useTaskUiStore((state) => state.setFilter);
 A component subscribed to a smaller slice avoids renders caused by unrelated fields. If a selector returns an object, use stable references or Zustand’s shallow comparison deliberately.
 
 Lab: add `sort: 'newest' | 'oldest'`, migrate any persisted store shape safely, and verify an old `localStorage` value does not crash the app.
+
+Additional exercises:
+
+1. Add a persisted store version and migration, seed `localStorage` with the previous shape, and prove upgrade plus malformed-state fallback.
+2. Measure renders with a whole-store subscription and narrow selectors while toggling an unrelated preference; keep the profiler trace and explain the difference.
 
 Exit check: explain why actions belong beside store data and why async server-cache orchestration usually does not.
 
@@ -3556,6 +3588,11 @@ Only implement that after defining conflict behavior. The API’s `version` fiel
 
 Lab: use React Query Devtools temporarily, change window focus, disconnect the network, and record `status` versus `fetchStatus`.
 
+Additional exercises:
+
+1. Add pagination to the query key, deliberately omit `offset`, observe cache aliasing, and restore a key factory that includes every result-changing input.
+2. Implement completion optimistically with snapshots for all filtered lists, force a 409, and prove rollback, user feedback, and authoritative refetch.
+
 Exit check: explain fresh, stale, inactive, invalidated, and garbage-collected query states.
 
 ### Lesson 1.5 — Polling is a consistency budget
@@ -3573,6 +3610,11 @@ PostgreSQL change -> outbox/event -> WebSocket or SSE -> queryClient.invalidateQ
 Do not connect a browser directly to PostgreSQL `LISTEN/NOTIFY`. The API owns database credentials, reconnect policy, authorization, fan-out, and backpressure.
 
 Lab: first use the network panel to verify that polling pauses when the tab loses focus. Then make the interval adaptive—30 seconds while tasks are open and `false` when every task is done. Finally, write down whether this product should keep the default or explicitly enable background polling; do not add a second `visibilitychange` mechanism unless the product needs behavior that the query library does not provide.
+
+Additional exercises:
+
+1. Make polling adaptive—active only while an open task exists—and use the network panel to prove the timer stops and restarts correctly.
+2. Add randomized jitter around the interval in a small simulation, plot request distribution for 10,000 clients, and compare the peak with synchronized polling.
 
 Exit check: calculate requests per minute and approximate requests per second for 10,000 continuously active users at 30-second polling, then state the caching, jitter, or event-driven change you would evaluate first.
 
@@ -3597,6 +3639,11 @@ export function Button({ variant = 'primary', type = 'button', ...props }: Butto
 The library shares behavior and a small semantic API while preserving native button attributes. `type="button"` prevents an easy-to-miss form submission bug. Keep feature-specific `TaskRow` in the feature until another real consumer appears; “shared” is an ownership decision, not a folder for miscellaneous files.
 
 Lab: add a `ConfirmButton` without using `window.confirm`, write its interaction test, and decide whether it is generic enough for the library.
+
+Additional exercises:
+
+1. Build an accessible `ConfirmButton` with an in-page confirmation state, then test focus movement, Escape cancellation, and keyboard activation without `window.confirm`.
+2. Add a loading contract that prevents duplicate submission while preserving an accessible name, and test both mouse and keyboard interaction.
 
 Exit check: state the accessibility contract of each shared component, including focus, keyboard, disabled, and loading behavior.
 
@@ -3625,6 +3672,11 @@ Virtualization addresses DOM and rendering cost. It does not replace API paginat
 For variable-height rows, attach `ref={virtualizer.measureElement}` and use the largest reasonable initial estimate. Stable item keys are important when rows reorder.
 
 Lab: compare DOM node count and React Profiler commit time before and after virtualization. Test keyboard navigation and screen-reader expectations; virtualization can hide off-screen semantic content.
+
+Additional exercises:
+
+1. Convert the fixed rows to variable heights, attach measurement, and verify scroll position remains stable when content expands.
+2. Combine cursor pagination with virtualization, load three pages, and prove the DOM stays bounded while network transfer grows only per requested page.
 
 Exit check: state the thresholds and measurements that would justify this added complexity in your product.
 
@@ -3668,6 +3720,11 @@ Abstraction is useful when it hides a volatile or complicated boundary. A one-li
 
 Lab: implement an in-memory `TaskRepository`, inject it directly into `TaskService` tests, and run them without either database. Keep production selection limited to the composition factory; do not turn `NODE_ENV=test` into hidden behavior inside the service.
 
+Additional exercises:
+
+1. Add a second composition root for a CLI task importer using the same service and repository port, then verify no HTTP type enters the domain layer.
+2. Replace the in-memory repository with a fault-injecting decorator and prove composition can add diagnostics without changing service policy.
+
 Exit check: draw the import arrows. No arrow should point from a lower policy layer back into an app.
 
 ### Lesson 2.2 — CRUD and HTTP semantics
@@ -3699,6 +3756,11 @@ curl -sS 'http://localhost:3000/api/tasks?limit=10&done=false'
 Use an idempotency key for create endpoints that clients may safely retry after timeouts. The server stores the key and original result under a uniqueness constraint. Do not pretend `POST` is automatically idempotent.
 
 Lab: add `GET /api/tasks/:id`, an ETag derived from `version`, and conditional `PATCH` using `If-Match`. Compare it with the existing version-in-body approach.
+
+Additional exercises:
+
+1. Implement conditional `PATCH` with ETag/`If-Match`, exercise success and stale precondition paths, and compare the contract with version-in-body.
+2. Design and test an idempotency-key create flow for a simulated response timeout, including same-key/same-payload replay and same-key/different-payload conflict.
 
 Exit check: explain why a timeout does not prove the write failed.
 
@@ -3732,6 +3794,11 @@ curl -i -X POST http://localhost:3000/api/tasks \
   -H 'content-type: application/json' \
   -d '{"title":"","priority":"urgent"}'
 ```
+
+Additional exercises:
+
+1. Add a `dueAt` rule that rejects past high-priority deadlines but accepts omitted values, then prove the inferred TypeScript type and runtime parser remain aligned.
+2. Fuzz the list-query parser with booleans, arrays, oversized numbers, empty strings, and unknown keys; record every accepted normalized output and rejection.
 
 Exit check: add a cross-field rule and one test that proves it runs at runtime.
 
@@ -3810,6 +3877,11 @@ return prisma.$queryRaw<OpenTaskRow[]>`
 Use Prisma query methods for ordinary CRUD. Reach for TypedSQL or `$queryRaw` when a measured query, PostgreSQL-specific operator, partial-index predicate, lock clause, or reporting shape is clearer in SQL. Do not use `$queryRawUnsafe` with user-controlled input. Values can be parameters; table or column identifiers cannot, so dynamic identifiers require a fixed application allowlist.
 
 Lab: add `sort: 'createdAt' | 'priority'` to the Zod query schema, map it to a typed Prisma `orderBy`, and compare the generated SQL/query plan with the plain selector. Do not accept an arbitrary column string.
+
+Additional exercises:
+
+1. Add an allowlisted sort command, implement it with typed Prisma `orderBy`, and prove arbitrary column text never reaches either ORM or raw SQL.
+2. Write the same bounded selector once with Prisma and once with parameterized SQL, capture emitted SQL/plans, and justify which version remains.
 
 Exit check: explain which layer owns the Prisma schema, generated client, domain contract, and public HTTP representation. Then demonstrate why a malicious title remains a value rather than executable SQL.
 
@@ -3978,6 +4050,11 @@ Expert extension (20 minutes): add the transaction rollback contract, then split
 
 The test suite—not the interface name—is evidence that adapters mean the same thing. If time expires, keep the core factory passing and move database-specific capabilities to the advanced lane; do not delete semantics from the port merely to make a fake green test.
 
+Additional exercises:
+
+1. Build a reusable repository contract suite for defaults, literal search, stable ordering, missing records, conflicts, completion atomicity, and deletion; run it against memory and PostgreSQL.
+2. Propose a PostgreSQL-only reporting port, reject adding it to generic task CRUD, and write an architecture decision explaining where the abstraction intentionally ends.
+
 Exit check: list the exact semantic promises in `TaskRepository`, then name three useful features that deliberately remain database-specific.
 
 ### Lesson 2.6 — Concurrency: I/O parallelism is not CPU parallelism
@@ -4056,6 +4133,11 @@ The Node event loop handles many concurrent I/O operations efficiently when each
 
 Lab: introduce 200 ms of synchronous busy work into a route, load-test both `/health/live` and that route, then remove it. Observe tail latency, not only average latency.
 
+Additional exercises:
+
+1. Run 100 independent database reads with unbounded `Promise.all` and with a semaphore below pool size; compare throughput, tail latency, and acquisition failures.
+2. Add event-loop delay monitoring, block the loop with synchronous JSON/CPU work, and correlate the delay histogram with liveness latency.
+
 Exit check: distinguish event-loop concurrency, libuv’s worker pool, `worker_threads`, multiple Node processes, and multiple ECS tasks.
 
 ### Lesson 2.7 — Worker threads for bounded CPU work
@@ -4085,6 +4167,11 @@ Workers are useful for CPU-intensive JavaScript. They rarely improve normal data
 The inline worker keeps this lesson copy-pasteable. A larger implementation should use a separate worker entry built with the app, version its message protocol, and validate messages on both sides.
 
 Lab: compare event-loop responsiveness for Fibonacci on the main thread versus the worker. Then cap concurrent workers at the number of CPU cores available to the container.
+
+Additional exercises:
+
+1. Implement a two-worker pool with a bounded queue and overload rejection, then prove the worker count never exceeds the configured capacity.
+2. Terminate a worker mid-task, verify the caller receives an intentional error, replace the failed worker, and prove the next task succeeds.
 
 Exit check: explain why eight workers in a 0.25-vCPU Fargate task can reduce performance.
 
@@ -4131,6 +4218,11 @@ Lab:
 1. Read a task and note its version.
 2. Send two different PATCH requests with that same version concurrently.
 3. Verify one succeeds and one returns `VERSION_CONFLICT`.
+
+Additional exercises:
+
+1. Inject a failure between task update and event insert, then prove both PostgreSQL and MongoDB adapters roll back state and history.
+2. Run ten two-client completion races, record success/conflict counts and final events, and fail the test if any invariant differs across runs.
 
 Exit check: explain when you would instead use `SELECT ... FOR UPDATE` and the cost of holding that lock.
 
@@ -4180,6 +4272,11 @@ Lab: add a request ID to the response headers and verify the same ID appears in 
 
 Senior challenge: inspect both audit reports, trace each remaining package to its parent with `npm ls`, and write a one-paragraph risk disposition that covers reachability, affected environment, compensating control, owner, expiry, and upgrade trigger.
 
+Additional exercises:
+
+1. Send forged proxy headers with `trust proxy` disabled, correctly configured, and overly broad; record how client IP and rate limiting change.
+2. Build a middleware-order test that proves health remains public, API routes require authentication, JSON limits run before routes, and error handling remains last.
+
 Exit check: write a threat model covering asset, actor, entry point, control, residual risk, and monitoring signal.
 
 ### Lesson 2.10 — HTTPS and where TLS terminates
@@ -4209,6 +4306,11 @@ HTTPS provides transport confidentiality, integrity, and server authentication. 
 
 Lab: generate a local development certificate with a trusted local tool, run the example entry, and inspect the negotiated protocol. Do not commit private keys.
 
+Additional exercises:
+
+1. Generate a local trusted certificate, run the HTTPS teaching entry, and capture certificate chain, hostname verification, and negotiated protocol.
+2. Compare TLS termination at ALB with re-encryption to targets, documenting certificate ownership, rotation, health checks, latency, and threat addressed.
+
 Exit check: draw the plaintext and encrypted segments for browser → CloudFront → ALB → ECS.
 
 ### Lesson 2.11 — Error handling and graceful lifecycle
@@ -4231,6 +4333,11 @@ On `SIGTERM`, the API:
 Readiness and liveness are different. Liveness asks “should this process be restarted?” Readiness asks “should it receive traffic now?” A transient database outage should normally fail readiness, not cause every container to restart in a loop.
 
 Lab: start the API, begin a deliberately slow request, send SIGTERM, and verify whether it completes before exit. Then add a test middleware that writes one response chunk before failing; prove the custom handler delegates when `response.headersSent` is true.
+
+Additional exercises:
+
+1. Start a slow request, send SIGTERM, and prove it finishes before pool disconnect; repeat past the shutdown deadline and capture the forced outcome.
+2. Stream one response chunk and then throw, verify `headersSent` delegation closes the response correctly, and ensure no second JSON envelope is attempted.
 
 Exit check: define retry policy by error class. Never retry validation errors; retry only known transient operations and only when idempotency is safe.
 
@@ -4277,6 +4384,11 @@ The bucket stays private. The ECS task role has only the required object actions
 
 Lab: store upload metadata only after S3 confirms the object, then design cleanup for objects whose database transaction fails.
 
+Additional exercises:
+
+1. Validate magic bytes for every allowed type, quarantine a mismatched upload, and prove neither extension nor client MIME alone can publish it.
+2. Simulate database metadata failure after S3 success, then implement and test an orphan cleanup strategy with idempotent deletion.
+
 Exit check: explain why a presigned URL is a bearer capability and must not appear in logs.
 
 ### Lesson 2.13 — Testing by boundary: suite synthesis
@@ -4299,6 +4411,11 @@ Build a balanced suite:
 Do not mock Prisma Client and call that a repository integration test. The risks are schema/client drift, constraints, mappings, transaction boundaries, timestamp/JSON types, generated SQL, and real query plans.
 
 Lab: add a test that proves stale updates return HTTP 409 and a repository test that proves task plus event roll back together.
+
+Additional exercises:
+
+1. Add an HTTP contract test for stale update 409 and assert only the stable public envelope—not an implementation-specific stack or driver message.
+2. Add a disposable-database integration test that proves the task/event rollback invariant and demonstrate why a mocked Prisma client would miss it.
 
 Exit check: for every mock, state which real failure it can no longer detect.
 
@@ -4364,6 +4481,11 @@ Always add a deterministic tie-breaker such as `id` after a timestamp. Rows with
 Core lab (60 minutes): implement all four CRUD operations with Prisma Client, inspect one generated statement, and use `EXPLAIN (ANALYZE, BUFFERS)` on the bounded plain selector. Predict scan, row-count, and sort behavior before reading the plan.
 
 Senior challenge (45 minutes): add `tenant_id` to every business table through a reviewed migration, include it in every repository predicate, and write a negative test that proves one tenant cannot read or mutate another tenant's task. Treat this as authorization work, not merely a schema rename.
+
+Additional exercises:
+
+1. Bypass the API with `psql`, attempt blank title, unsupported priority, and non-positive version writes, and record which database constraint protects each invariant.
+2. Add a nullable field through an expand/backfill/enforce sequence, run old and new application shapes concurrently, and prove rollback remains possible at every stage.
 
 Exit check: identify invariants enforced by API validation, database constraints, and authorization. Important rules often belong in more than one layer.
 
@@ -4441,6 +4563,11 @@ async function retryTransaction<T>(operation: () => Promise<T>) {
 Keep transactions short. Do not wait for an HTTP call, user input, or a long CPU job while holding database locks. Access rows in a consistent order to reduce deadlocks.
 
 Lab: open two `psql` sessions, lock the same rows in opposite orders, observe PostgreSQL abort one transaction, then fix the access order.
+
+Additional exercises:
+
+1. Create a deadlock with two sessions locking rows in opposite order, capture PostgreSQL diagnostics, then impose a consistent access order and prove the deadlock disappears.
+2. Force a serializable conflict, implement a bounded whole-transaction retry with jitter, and show that non-retryable constraint errors are attempted once.
 
 Exit check: explain why retrying only the last SQL statement can violate a multi-statement invariant.
 
@@ -4526,6 +4653,11 @@ PostgreSQL `LISTEN/NOTIFY` can reduce idle polling. Notifications are small, tra
 
 Lab: run two Node worker processes with different `locked_by` values and prove no job is returned twice during the same lease.
 
+Additional exercises:
+
+1. Run three competing claimers with distinct worker IDs, prove no active lease is shared, then crash one and recover its expired work.
+2. Add attempts, exponential availability delay, and a failed/dead-letter state; graph queue age and retry count for a deliberately failing handler.
+
 Exit check: describe the crash window between an S3 side effect and marking the job complete.
 
 ### Lesson 3.4 — Indexing: optimize measured access paths
@@ -4589,6 +4721,11 @@ ON task_events USING gin (payload jsonb_path_ops);
 
 Lab: capture plan and timing before the index, add it, run `ANALYZE tasks`, capture again, then remove an unused index.
 
+Additional exercises:
+
+1. Generate realistic cardinality and skew, compare plans before/after `ANALYZE`, and explain any estimate error large enough to change the selected scan.
+2. Add a candidate index, measure read improvement plus insert/update size cost, then remove it if the recorded product query does not justify ownership.
+
 Exit check: explain why PostgreSQL may correctly prefer a sequential scan on a small table.
 
 ### Lesson 3.5 — MVCC, vacuum, statistics, and connection pools
@@ -4623,6 +4760,11 @@ Prisma 7 uses the `pg` driver adapter, so pool behavior comes from node-postgres
 Create one long-lived Prisma Client per Node process. Constructing one per request creates pools until PostgreSQL refuses connections. Call `$disconnect()` during graceful process shutdown, not after every query.
 
 Lab: set `DATABASE_POOL_MAX=1`, run several concurrent slow queries, and observe acquisition wait plus the configured five-second connection timeout. Restore the bound, then verify `application_name = 'nx-learning-api'` and connection count in `pg_stat_activity`.
+
+Additional exercises:
+
+1. Hold an old transaction open while updating many rows, observe dead tuples and vacuum limitations, then close it and record cleanup behavior.
+2. Run concurrent slow queries with pool sizes 1, 5, and 20; compare throughput, wait time, database connections, and the point where more connections hurt.
 
 Exit check: calculate the global connection maximum for your desired ECS autoscaling range.
 
@@ -4665,6 +4807,11 @@ Managed/distributed options such as Citus or application-level sharding reduce s
 
 Lab: write a sharding decision record with current data size, growth, largest query, write throughput, RTO/RPO, candidate key, reshard plan, and rejected simpler alternatives.
 
+Additional exercises:
+
+1. Create monthly audit partitions plus a default/future partition, insert boundary timestamps, and prove pruning with `EXPLAIN`.
+2. Compare modulo, range, and directory-based tenant routing while adding a shard; calculate data movement and identify which queries lose global guarantees.
+
 Exit check: identify one query in this task system that becomes cross-shard and how you would redesign it.
 
 ### Lesson 3.7 — Primary and read replicas
@@ -4704,6 +4851,11 @@ Replicas improve read capacity and availability options, not write capacity. Pro
 Monitor replica replay lag in both bytes and time, and alert based on product tolerance.
 
 Lab: simulate a stale replica in a test repository and prove the UI still shows a just-created task using mutation data or a temporary primary read.
+
+Additional exercises:
+
+1. Simulate replica lag after a write, route list reads to the replica and read-after-write to primary, and document the user-visible inconsistency window.
+2. Design a lag-aware routing rule with a measurable threshold and fallback, then state how it affects capacity during primary or replica failure.
 
 Exit check: state the acceptable staleness for each API read, not one number for the entire database.
 
@@ -4749,6 +4901,11 @@ pg_restore --clean --if-exists --no-owner \
 ```
 
 A backup is not proven until a restore is tested. RPO is acceptable data loss measured in time. RTO is acceptable time to restore service. RDS automated backups and point-in-time recovery still require restore drills, access checks, dependency recovery, and an application-level validation plan.
+
+Additional exercises:
+
+1. Restore a backup into an isolated database, apply the validation suite, record actual recovery time, and compare it with the declared RTO.
+2. Rehearse a migration rollback decision after data has been written in the new shape; document when roll-forward is safer than schema reversal.
 
 Exit check: write the exact restore owner, frequency, target account/region, validation query, RPO, and RTO.
 
@@ -4976,6 +5133,11 @@ Core lab evidence: keep the profile comparison, MongoDB health transition, first
 
 Senior challenge: change the member host incorrectly to `localhost:27017`, capture the discovery failure from the host and container perspectives, then restore `mongodb:27017` and explain why replica-set member addresses must be reachable by clients.
 
+Additional exercises:
+
+1. Run the setup job before MongoDB is ready, capture its finite failure, then restore the health dependency and prove idempotent success twice.
+2. Advertise an unreachable replica-set member hostname, compare host and container discovery failures, then restore Compose DNS and explain the topology contract.
+
 Exit check: explain the difference between starting `mongod` with replica-set mode, initiating replica-set configuration, electing a writable primary, and providing multiple members for availability.
 
 ### Lesson 3B.1 — Document modelling and layered validation
@@ -5025,6 +5187,11 @@ db.runCommand({
 Be careful: Mongoose normally stores JavaScript integer numbers as BSON doubles unless you explicitly use an integer schema type or driver BSON value. Inspect the real stored type before pasting `bsonType: 'int'`; adapt the validator to the chosen representation. This is the lesson: TypeScript `number`, Mongoose `Number`, and BSON numeric types are not identical contracts.
 
 Lab: type the schema yourself, add one invalid write through the Mongoose model and one through `mongosh`, then explain which boundary rejected each. Decide whether description belongs embedded on the task or in its own collection by analysing access and update patterns, not by applying a normalization slogan.
+
+Additional exercises:
+
+1. Write invalid data through Mongoose and the native driver, then add a collection validator and compare which boundary rejects each attempt.
+2. Model task comments once embedded and once referenced; estimate document growth, atomic update scope, and query count before choosing with an ADR.
 
 Exit check: explain why Mongoose schema validation cannot protect data written by a different client that connects directly to MongoDB.
 
@@ -5112,6 +5279,11 @@ Core lab (35 minutes): implement the bounded `list()` with `.lean()`, add a lite
 
 Senior challenge (30 minutes): implement the read once with hydrated documents and once with `.lean()`, then benchmark heap allocation and latency on 10,000 documents. Warm both paths, repeat the samples, and record environment and variance; a single timing is not a benchmark.
 
+Additional exercises:
+
+1. Benchmark hydrated and lean list reads over 10,000 documents with warm-up and repeated samples; compare latency, heap allocation, and lost document behavior.
+2. Attempt literal searches containing `.*`, brackets, anchors, and backslashes, then prove the repository escapes metacharacters and enforces a bounded input length.
+
 Exit check: name what Mongoose casting/middleware you lose when using `connection.db.collection()` and why that escape hatch belongs inside an adapter.
 
 ### Lesson 3B.3 — Atomic documents, optimistic concurrency, and transactions
@@ -5150,6 +5322,11 @@ Core lab (30 minutes): temporarily throw after the task update and before event 
 
 Instructor demonstration or senior challenge (20 minutes): use a separate disposable standalone `mongod` to observe that the multi-document transaction is rejected. Do not reconfigure the shared summit database or ask another pair to repair its topology.
 
+Additional exercises:
+
+1. Run two same-version document updates concurrently, prove one match and one conflict without a transaction, and inspect the final version.
+2. Throw after the task update inside the completion transaction, prove no event or update commits, and repeat the same contract against PostgreSQL.
+
 Exit check: distinguish MongoDB single-document atomicity, optimistic concurrency, and a multi-document transaction.
 
 ### Lesson 3B.4 — Indexes and query-plan evidence
@@ -5180,6 +5357,11 @@ The case-insensitive unanchored `$regex` used for human substring search will no
 Mongoose can auto-create declared indexes at application startup. That is convenient locally but risky in production because builds can add significant load. This project disables `autoIndex` in production and creates indexes through explicit deployment setup.
 
 Lab: drop `tasks_done_created_at_id`, capture execution statistics, recreate it, and compare. Then add a sort on `priority`; predict whether the current index can provide it before reading the plan.
+
+Additional exercises:
+
+1. Compare `executionStats` with no index, a wrong-order index, and the final compound index using realistic selectivity and stable sort.
+2. Add a redundant index deliberately, measure storage and write amplification, then remove it and document the detection/removal signal.
 
 Exit check: justify each index with a query, measured plan, write/storage cost, owner, and removal signal.
 
@@ -5216,6 +5398,11 @@ A change stream is not automatically your durable business queue. You still need
 
 Lab: watch tasks in one terminal, update through the API in another, then restart the watcher using a retained resume token. Compare this with polling `updatedAt/_id` and list the failure windows of each.
 
+Additional exercises:
+
+1. Resume a change stream from a persisted token after process restart, then invalidate the token and document recovery without silent event loss.
+2. Build a polling worker with durable checkpoints and compare duplicate handling, latency, and operational ownership with the change-stream version.
+
 Exit check: explain when an outbox plus broker is more appropriate than processing a change stream directly.
 
 ### Lesson 3B.6 — Replication, read preference, and consistency
@@ -5235,6 +5422,11 @@ Core design exercise (20 minutes): classify task creation, list pages, authoriza
 
 Advanced topology lab (60–90 minutes, separate environment): expand the local topology to three members, pause a secondary, and observe lag and election behavior. Run a just-created-task read with primary versus secondary preference. This is an instructor-prepared breakout or take-home exercise because it changes shared infrastructure. Do not call it complete until the application reports what consistency it promises.
 
+Additional exercises:
+
+1. Step down the primary during writes, capture driver selection/retry behavior, and distinguish an acknowledged failure from an unknown outcome.
+2. Route an analytics read to a secondary, measure lag, and prove authorization or read-after-write paths remain on consistency-appropriate settings.
+
 Exit check: state the write concern, read concern, and read preference for task creation, list pages, and authorization checks.
 
 ### Lesson 3B.7 — Sharding is a data-distribution design
@@ -5253,6 +5445,11 @@ A shard key affects routing, balance, write distribution, query fan-out, uniquen
 Do not shard this tiny learning application. First exhaust query design, indexes, document shape, hardware, archiving, and read scaling. Sharding adds routers, config servers, balancing, operational failure modes, and cross-shard transaction cost.
 
 Lab: propose two shard keys for a multi-tenant version of tasks—`{ tenantId: 1, _id: 1 }` and a hashed alternative. For five query patterns, mark targeted versus scatter/gather and predict the hottest tenant behavior. Compare the result with PostgreSQL application-level sharding from Lesson 3.6.
+
+Additional exercises:
+
+1. Evaluate tenant ID, task ID, and creation time as shard keys using cardinality, frequency, monotonicity, targeting, and hottest-chunk evidence.
+2. Simulate adding a shard to a simple router, calculate remapping, and design a resharding/dual-read migration with rollback.
 
 Exit check: explain why a replica set does not increase write capacity and why a random hashed key can harm range queries.
 
@@ -5301,6 +5498,11 @@ Choose the adapter from product evidence:
 This table is a starting hypothesis, not a benchmark. Team expertise, managed-service constraints, data volume, access patterns, failure tolerance, compliance, migration cost, and operational ownership decide the result.
 
 Final lab: run the same repository contract suite against both databases, then write a one-page architecture decision record selecting one for this task product. Include rejected alternatives and the evidence that would cause you to revisit the choice.
+
+Additional exercises:
+
+1. Add a new optional field with mixed old/new documents, write a tolerant read plus backfill, and prove both application revisions operate during rollout.
+2. Restore MongoDB data into an isolated database, run the shared contract and count checks, and compare achieved recovery time with PostgreSQL.
 
 Exit check: explain why having two adapters is valuable for learning but often unnecessary operational complexity in one production service.
 
@@ -5355,6 +5557,11 @@ curl -i http://localhost:3000/api/health/ready
 Restore the database port until the API itself becomes a Compose service in Lesson 4.3.
 
 Core lab: draw host, project network, three current services, published ports, and volumes. Annotate which names are meaningful from the host and which are meaningful only inside the Compose network.
+
+Additional exercises:
+
+1. Inspect the same service with `docker compose config`, `docker inspect`, and a process listing; map desired configuration to the resulting runtime object and process.
+2. Remove a published database port, prove container-to-container DNS still works, and capture why the host API/client loses reachability.
 
 Exit check: explain image versus container, service versus container, volume versus bind mount, internal port versus published port, and why container DNS removes a need for database port publication later.
 
@@ -5679,6 +5886,11 @@ For higher supply-chain assurance:
 Core lab (45 minutes): build both final images and retain a table containing initial context size, final context size, baseline API image size, final API image size, largest layer, runtime user, command, and listening port. Prove the web image serves `/` and a direct React route while returning 404 for a missing fingerprinted asset.
 
 Senior challenge (20 minutes): build twice after changing only one TypeScript source file, then after changing `package-lock.json`. Use the plain build output to explain exactly when the dependency layer is reused and invalidated. Generate an SBOM and identify one component that exists in the build stage but not the runtime filesystem.
+
+Additional exercises:
+
+1. Build with and without `.dockerignore`, record context bytes, build duration, layer cache reuse, and any sensitive/unnecessary file that entered the larger context.
+2. Scan the runtime image, run it as the declared non-root user with a read-only filesystem, and resolve one finding without adding a package manager to runtime.
 
 Exit check: explain why stage separation, a bounded context, deterministic dependency installation, an unprivileged user, and exec-form `CMD` solve different problems. Find the largest runtime layer and decide whether reducing it materially improves pull time or attack surface.
 
@@ -6041,6 +6253,11 @@ Core lab (90 minutes): build all four new responsibilities in order—migration,
 
 Senior challenge (30 minutes): after the complete system works, remove both database `ports` mappings. Prove containerized APIs still work through Compose DNS while host-run APIs and host database clients no longer have a route. Add explicit CPU and memory limits, justify the values with a load test, then verify graceful termination under those limits.
 
+Additional exercises:
+
+1. Make the migration job fail, prove the API and web do not become ready, capture logs/state, then fix the migration and recover without recreating database data.
+2. Remove host database ports after containerization, run both Prisma and optional Mongoose profiles, and prove only intended web/API ports remain published.
+
 Exit check: recreate the dependency graph from memory and explain why database health, migration completion, API readiness, and web creation are four different states. Then classify every environment variable as public configuration, sensitive configuration, or identity supplied by the platform.
 
 ### Lesson 4.4 — Container debugging without destroying evidence
@@ -6068,6 +6285,11 @@ docker stats
 Prefer logs, metrics, health, and an ephemeral debug container over installing tools into a running production container. A container mutation disappears on replacement and makes the incident impossible to reproduce.
 
 Lab: break the database hostname, predict which health check fails, inspect the evidence, then restore it.
+
+Additional exercises:
+
+1. Break internal DNS, port mapping, and readiness one at a time; diagnose each using only non-mutating evidence before applying the fix.
+2. Launch an ephemeral debug container on the project network, prove connectivity without modifying production images, and save a reusable incident command set.
 
 Exit check: produce a five-minute triage checklist that starts with impact and recent changes.
 
@@ -6202,6 +6424,11 @@ repository-contract:
 ```
 
 `test:repository-contract` is intentionally a TODO until you write the suite. Pin container images by digest in a hardened pipeline and add teardown/diagnostic log collection on failure.
+
+Additional exercises:
+
+1. Change only `frontend/ui`, run `nx affected`, and compare selected tasks with a full run; explain every included and excluded project from the graph.
+2. Deliberately fail formatting, a repository contract, image build, and dependency audit in separate commits; prove each failure blocks the correct downstream job.
 
 Exit check: identify which input changes invalidate each build output.
 
@@ -6387,6 +6614,11 @@ jobs:
 
 Lab: add a staging environment with a separate role, ECS service, buckets, variables, and approval policy. Never make staging and production share a deploy role “for convenience.”
 
+Additional exercises:
+
+1. Decode a GitHub OIDC token in a safe test job, compare its audience/subject with IAM conditions, and prove a different branch/environment cannot assume the role.
+2. Deploy to a separate staging environment with independent role, ECS service, buckets, and approvals; demonstrate that production identifiers are inaccessible.
+
 Exit check: list exactly which AWS actions the deploy role needs and remove wildcard permissions where resource-level scoping exists.
 
 ### Lesson 5.3 — Deployment safety and rollback
@@ -6405,6 +6637,11 @@ Do not use the mutable `latest` tag as deployment identity. A commit tag is bett
 For database changes, deploy backward-compatible expansion before new code. Rolling ECS tasks means old and new application versions overlap.
 
 Lab: intentionally fail readiness in a staging task, observe deployment behavior, then roll back to the last task definition revision.
+
+Additional exercises:
+
+1. Deploy a revision with failing readiness in staging, capture circuit-breaker events, and verify the previous task definition continues serving.
+2. Design and rehearse an expand/contract migration across overlapping old/new tasks, including the exact rollback point before destructive contraction.
 
 Exit check: state what “successful rollback” means when a non-backward-compatible migration has already committed.
 
@@ -6443,6 +6680,11 @@ Do not add every AWS service to one request path. API Gateway and ALB overlap fo
 Deploy one database path per environment while learning. Running RDS and a managed MongoDB cluster at the same time doubles cost and operational surface without improving this product. The checked-in ECS task definition remains the Prisma/RDS default; switching it is a deliberate later lab.
 
 Lab: redraw the architecture from memory, trace browser navigation, API CRUD, direct upload, and deployment as four separate flows, then remove any service whose purpose you cannot explain with a requirement.
+
+Additional exercises:
+
+1. Trace navigation, API CRUD, presigned upload, and deployment as four separate flows, naming protocol, identity, encryption, caching, and failure owner at every hop.
+2. Remove one proposed AWS service at a time, document the lost requirement, and permanently reject any service whose removal changes no stated requirement.
 
 Exit check: identify every public trust boundary, credential exchange, persistent data store, scaling unit, health decision, and paid baseline resource in the diagram.
 
@@ -6494,6 +6736,11 @@ aws budgets create-budget \
 ```
 
 Add notifications in the console or with `--notifications-with-subscribers`. AWS Budget Actions can, after a threshold and either automatically or with approval, apply selected IAM/SCP controls or target supported EC2/RDS resources. They are still not a universal real-time spending cap: budget data is delayed, coverage is selective, and an Auto Scaling Group can replace a stopped instance. Use least privilege, teardown automation, service quotas, and an expiration tag such as `delete-after=2026-08-28` as additional controls.
+
+Additional exercises:
+
+1. Estimate one-day and one-month cost for minimum and availability configurations, including NAT, ALB, public IPv4, database, storage, logs, and transfer assumptions.
+2. Trigger a very small test threshold or notification path, verify receipt and delay, then document why the budget is not an immediate kill switch.
 
 Exit check: identify every hourly baseline charge in the proposed architecture before creating it.
 
@@ -6554,6 +6801,11 @@ Separate roles:
 - **ECS task role:** permissions application code needs, for example `s3:PutObject` only on `arn:aws:s3:::nx-learning-uploads/uploads/*`.
 - **GitHub deploy role:** changes deployment resources; the application can never assume it.
 
+Additional exercises:
+
+1. Remove S3 permission from the task role while retaining the execution role, prove the image/logs still work but uploads fail, then restore least privilege.
+2. Use IAM policy simulation for every deploy action and resource, remove one wildcard, and retain evidence for allowed plus intentionally denied operations.
+
 Exit check: explain why execution role and task role are not interchangeable.
 
 ### Lesson 6.4 — Networking and security groups
@@ -6581,6 +6833,11 @@ Create security groups by relationship, not broad CIDRs:
 | `api-sg` | 3000 only from `alb-sg`                | 5432 to `db-sg`, HTTPS to AWS endpoints |
 | `db-sg`  | 5432 only from `api-sg`                | Default/stateful response only          |
 
+Additional exercises:
+
+1. Verify security-group references with reachability evidence from ALB, ECS, RDS, and an unauthorized source; remove any broad CIDR that is unnecessary.
+2. Compare NAT Gateway with required VPC endpoints for ECR, logs, secrets, and S3; estimate cost and list every dependency that would lose egress.
+
 Exit check: show that the RDS and API ports are not reachable directly from the public internet.
 
 ### Lesson 6.5 — RDS PostgreSQL
@@ -6599,6 +6856,11 @@ Console path **RDS → Databases → Create database**:
 Run Prisma migrations as a one-off ECS task using the Dockerfile's `migration` stage and the same private networking as the API, not from every API replica at startup. The workflow waits for a zero exit code before deploying new application tasks. The migration image contains Prisma CLI and reviewed migration history; the lean API runtime image does not. Production never runs the learning seed.
 
 For replicas, create **RDS → Databases → Actions → Create read replica**, route only explicitly stale-tolerant reads to its endpoint, and alarm on replica lag. For failover availability, understand the difference between Multi-AZ standby and read replicas.
+
+Additional exercises:
+
+1. Simulate connection pressure from the maximum ECS task count, verify reserved operational capacity, and choose pool/autoscaling bounds from evidence.
+2. Enable and inspect slow-query/performance diagnostics for a measured task query, then map the finding back to the local `EXPLAIN` lesson.
 
 Exit check: perform a point-in-time restore into a new database, run a validation query, and record elapsed time.
 
@@ -6622,6 +6884,11 @@ Security-group egress must allow the PrivateLink endpoint, and the endpoint poli
 AWS-native Amazon DocumentDB is MongoDB-compatible, not MongoDB. If you evaluate it, create a separate compatibility branch and test every operator, index, transaction, change-stream behavior, result-order assumption, and failure mode used by this adapter against the exact engine version. DocumentDB requires TLS and its connection guidance includes `replicaSet=rs0`; it does not support retryable writes, so its URI commonly requires `retryWrites=false`. Do not point the production Mongoose adapter at DocumentDB merely because the wire protocol connects.
 
 Lab: deploy the Mongoose API to staging against Atlas, run the same repository contract suite plus failover/readiness tests, build indexes explicitly, and perform a restore to a separate cluster. Then record cost and operational ownership beside the RDS path.
+
+Additional exercises:
+
+1. Build a compatibility matrix for every feature this adapter uses—transactions, change streams, indexes, drivers, backup, and sharding—against Atlas and DocumentDB.
+2. Price a time-boxed Atlas learning deployment, configure network/identity boundaries, and write a teardown/backup plan before creating the cluster.
 
 Exit check: explain the difference between MongoDB, MongoDB Atlas running on AWS, and Amazon DocumentDB with MongoDB compatibility.
 
@@ -6655,6 +6922,11 @@ Field guide for this strict JSON: `AllowedOrigins` is the exact browser-origin a
 ```
 
 Bucket CORS does not grant S3 permission. The presigned signature does. Keep the upload bucket out of the web bucket so user content cannot inherit executable site behavior.
+
+Additional exercises:
+
+1. Configure and test bucket CORS for the exact web origin and upload method, then prove an unapproved origin cannot use browser access.
+2. Add lifecycle rules for incomplete multipart uploads and quarantined objects, simulate eligible objects, and verify retained production data is unaffected.
 
 Exit check: prove an anonymous S3 GET is denied while CloudFront can retrieve the web object.
 
@@ -6691,6 +6963,11 @@ docker push \
 
 CI should deploy the digest or commit SHA, not `latest`.
 
+Additional exercises:
+
+1. Push two commit-tagged images, deploy by digest, and prove retagging cannot change the running task's artifact identity.
+2. Add lifecycle policy preview for untagged/old images, protect the rollback window, and document how many revisions operations must retain.
+
 Exit check: find the pushed image digest and locate its scan results/SBOM.
 
 ### Lesson 6.8 — Application Load Balancer
@@ -6712,6 +6989,11 @@ Create ALB:
 6. Enable deletion protection and access logs to a dedicated S3 log bucket when this is no longer disposable.
 
 The ALB distributes layer-7 traffic and removes unhealthy targets. It does not make an application stateless; sessions, uploads, and locks still need shared/external state or sticky-session tradeoffs.
+
+Additional exercises:
+
+1. Tune health interval and thresholds in staging, inject intermittent readiness failures, and measure detection versus flapping before choosing values.
+2. Attempt direct ALB-origin access when CloudFront is the intended edge, then implement and verify the chosen origin-protection control.
 
 Exit check: stop one task during a two-task deployment and observe target deregistration plus uninterrupted requests.
 
@@ -6841,6 +7123,11 @@ Console:
 
 The task definition uses a read-only root filesystem, structured CloudWatch logs, health check, secrets, and a task role. Size CPU/memory from observed utilization and throttling. Node sees the container’s CPU/memory limits; measure event-loop delay, heap, and OOM exits.
 
+Additional exercises:
+
+1. Load-test one and two Fargate tasks, record CPU, memory, event-loop delay, target latency, and database connections before setting autoscaling bounds.
+2. Send SIGTERM during a slow request, observe target deregistration and application draining, and reconcile ECS stop timeout with the Node shutdown deadline.
+
 Exit check: force a bad image deployment in staging and verify the circuit breaker returns to a healthy revision.
 
 ### Lesson 6.10 — CloudFront CDN and DNS
@@ -6859,6 +7146,11 @@ Create a distribution:
 8. **Route 53 → Hosted zones**: create an alias A/AAAA record from `app.example.com` to the distribution.
 
 Cache immutable hashed assets for a year. Keep `index.html` short-lived or uncached. Invalidate HTML after deploy; invalidating `/*` every time is slower and can cost more.
+
+Additional exercises:
+
+1. Configure short HTML and immutable hashed-asset caching, deploy a new build, and prove users receive new HTML without redownloading unchanged assets.
+2. Attempt to cache an authenticated API response, demonstrate the risk, then configure behavior/cache-key policy that prevents cross-user leakage.
 
 Exit check: inspect `Age`, `Via`, and `X-Cache` headers for HTML, an asset, and an API response.
 
@@ -6890,6 +7182,11 @@ Console outline:
 
 Choose REST API rather than HTTP API only for REST-specific features you require. Check current feature and pricing comparisons before choosing.
 
+Additional exercises:
+
+1. Model monthly cost and latency for the expected request volume through ALB-only versus API Gateway, including idle baseline and per-request charges.
+2. Prototype one Gateway-specific requirement such as usage plans or request validation, measure the added hop, and remove Gateway if the feature does not earn it.
+
 Exit check: write a decision record comparing ALB-only and API Gateway + private ALB for latency, price, auth, throttling, observability, limits, and team ownership.
 
 ### Lesson 6.12 — EC2: learn the primitive, then compare ECS
@@ -6907,6 +7204,11 @@ Time-boxed EC2 lab:
 7. Patch/rebuild it, then terminate the instance and delete unused volumes/IPs when the lesson ends.
 
 Do not run the production database in the same EC2 instance as the API for this architecture. It couples failure, scaling, backup, and maintenance lifecycles.
+
+Additional exercises:
+
+1. Bootstrap a disposable EC2 instance with Session Manager rather than SSH, run the API container, and list every patching/scaling/recovery responsibility you acquired.
+2. Terminate the instance unexpectedly, measure recovery with and without an Auto Scaling Group, and compare the result with ECS service replacement.
 
 Exit check: make a responsibility matrix for EC2 + Docker, ECS on EC2, and ECS on Fargate.
 
@@ -6934,6 +7236,11 @@ Starter alarms:
 
 Lab: create one CloudWatch dashboard and induce a safe staging failure. Follow the runbook using only telemetry.
 
+Additional exercises:
+
+1. Correlate one browser request ID through CloudFront/ALB/application logs and a database observation, then identify the first boundary where correlation is lost.
+2. Trigger high 5xx, readiness failure, queue age, and database connection alarms in staging; execute each runbook and revise any alert without a clear owner/action.
+
 Exit check: remove any alarm that has no actionable response.
 
 ### Lesson 6.14 — Teardown in dependency order
@@ -6953,6 +7260,11 @@ For a disposable lab, delete resources when finished. Verify names and retained 
 11. Recheck Cost Explorer over the next day for lingering charges.
 
 ACM certificates, CloudWatch log groups, snapshots, Route 53 hosted zones, Elastic IPs, and Secrets Manager scheduled deletions are frequently forgotten.
+
+Additional exercises:
+
+1. Perform a dry-run inventory grouped by dependency and cost before deletion, then have a second person review data-bearing resources and backups.
+2. Wait for billing/resource views to converge after teardown, investigate every remaining chargeable/tagged item, and record final cost plus deletion evidence.
 
 Exit check: after teardown, list every remaining project-tagged resource with AWS Resource Explorer or Tag Editor.
 
