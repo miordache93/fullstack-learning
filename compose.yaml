@@ -1,0 +1,135 @@
+services:
+  database:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: learning
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d learning']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migration
+    environment:
+      DATABASE_URL: postgresql://app:app@database:5432/learning
+    command:
+      [
+        'sh',
+        '-c',
+        'npx prisma migrate deploy && npx prisma db execute --file prisma/seed.sql',
+      ]
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_CLIENT: prisma
+      DATABASE_URL: postgresql://app:app@database:5432/learning
+      CORS_ORIGINS: http://localhost:8080
+      AWS_REGION: eu-central-1
+    ports:
+      - '3000:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  mongodb:
+    # WHAT: Start this optional teaching topology only with `--profile mongodb`.
+    profiles: ['mongodb']
+    image: mongo:8.0
+    # WHY: Transactions and change streams require a replica set, even in a one-node lab.
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # CHECK: Wait for the server before initiating the replica set and creating indexes.
+      test:
+        ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mongo-setup:
+    # WHAT: Make replica initialization and index creation an explicit one-shot operation.
+    profiles: ['mongodb']
+    image: mongo:8.0
+    command:
+      [
+        'mongosh',
+        'mongodb://mongodb:27017/admin?directConnection=true',
+        '--quiet',
+        '--file',
+        '/setup/init-replica-and-indexes.js',
+      ]
+    volumes:
+      - ./infra/mongodb:/setup:ro
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: 'no'
+
+  api-mongo:
+    # WHAT: Run the same compiled API with only its persistence selection changed.
+    profiles: ['mongodb']
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_CLIENT: mongoose
+      MONGODB_URL: mongodb://mongodb:27017/learning?replicaSet=rs0&directConnection=true
+      CORS_ORIGINS: http://localhost:8080
+      AWS_REGION: eu-central-1
+    ports:
+      # WHY: Keep the Prisma API on 3000 available for side-by-side contract tests.
+      - '3001:3000'
+    depends_on:
+      mongo-setup:
+        condition: service_completed_successfully
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      - api
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+
+volumes:
+  postgres-data:
+  mongo-data:

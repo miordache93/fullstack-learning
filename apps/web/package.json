@@ -1,0 +1,8 @@
+{
+  "name": "@nx-fullstack-learning/web",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@nx-fullstack-learning/frontend-ui": "*"
+  }
+}

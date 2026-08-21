@@ -1,0 +1,126 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REPOSITORY: nx-learning-api
+  ECS_CLUSTER: nx-learning
+  ECS_SERVICE: nx-learning-api
+  ECS_CONTAINER: api
+
+jobs:
+  deploy:
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Generate Prisma Client used by the API build
+        env:
+          # WHY: Client generation needs a syntactically valid URL but makes no connection.
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: npm run prisma:generate
+      - run: npx nx run-many -t lint,test,typecheck,build
+
+      - name: Exchange GitHub OIDC token for short-lived AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push immutable API image
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          MIGRATION_IMAGE: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}-migration
+        run: |
+          docker build -f apps/api/Dockerfile -t "$IMAGE" .
+          docker push "$IMAGE"
+          docker build --target migration -f apps/api/Dockerfile -t "$MIGRATION_IMAGE" .
+          docker push "$MIGRATION_IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "migration-image=$MIGRATION_IMAGE" >> "$GITHUB_OUTPUT"
+        id: api-image
+
+      - name: Insert migration image into one-shot task definition
+        id: migration-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.9.0
+        with:
+          task-definition: infra/aws/ecs-migration-task-definition.json
+          container-name: migrate
+          image: ${{ steps.api-image.outputs.migration-image }}
+
+      - name: Apply reviewed Prisma migrations inside the application VPC
+        env:
+          MIGRATION_TASK_DEFINITION: ${{ steps.migration-task-definition.outputs.task-definition }}
+          ECS_PRIVATE_SUBNET_IDS: ${{ vars.ECS_PRIVATE_SUBNET_IDS }}
+          ECS_SECURITY_GROUP_ID: ${{ vars.ECS_SECURITY_GROUP_ID }}
+        run: |
+          TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "file://$MIGRATION_TASK_DEFINITION" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --task-definition "$TASK_DEFINITION_ARN" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[$ECS_PRIVATE_SUBNET_IDS],securityGroups=[$ECS_SECURITY_GROUP_ID],assignPublicIp=DISABLED}" \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          test "$TASK_ARN" != "None"
+          aws ecs wait tasks-stopped --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN"
+
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0].containers[?name==`migrate`].exitCode | [0]' \
+            --output text)
+
+          test "$EXIT_CODE" -eq 0
+
+      - name: Insert image into task definition
+        id: task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.9.0
+        with:
+          task-definition: infra/aws/ecs-task-definition.json
+          container-name: ${{ env.ECS_CONTAINER }}
+          image: ${{ steps.api-image.outputs.image }}
+
+      - name: Deploy API and wait for healthy ECS tasks
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-definition.outputs.task-definition }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.ECS_SERVICE }}
+          wait-for-service-stability: true
+          wait-max-delay-seconds: 15
+
+      - name: Publish frontend to private S3 origin
+        run: aws s3 sync apps/web/dist "s3://${{ vars.WEB_BUCKET }}" --delete
+
+      - name: Invalidate HTML at CloudFront
+        run: >-
+          aws cloudfront create-invalidation
+          --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          --paths "/" "/index.html"

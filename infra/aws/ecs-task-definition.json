@@ -1,0 +1,56 @@
+{
+  "family": "nx-learning-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/nx-learning-ecs-execution",
+  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/nx-learning-api-task",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "<ACCOUNT_ID>.dkr.ecr.eu-central-1.amazonaws.com/nx-learning-api:bootstrap",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 3000, "hostPort": 3000, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "HOST", "value": "0.0.0.0" },
+        { "name": "PORT", "value": "3000" },
+        { "name": "AWS_REGION", "value": "eu-central-1" },
+        { "name": "CORS_ORIGINS", "value": "https://app.example.com" },
+        { "name": "S3_UPLOAD_BUCKET", "value": "nx-learning-uploads" }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:<ACCOUNT_ID>:secret:nx-learning/database-url"
+        },
+        {
+          "name": "API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:<ACCOUNT_ID>:secret:nx-learning/api-key"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "node -e \"fetch('http://localhost:3000/api/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))\""
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/nx-learning-api",
+          "awslogs-region": "eu-central-1",
+          "awslogs-stream-prefix": "api"
+        }
+      },
+      "readonlyRootFilesystem": true
+    }
+  ]
+}

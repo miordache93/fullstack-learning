@@ -1,0 +1,22 @@
+{
+  "name": "@nx-fullstack-learning/frontend-ui",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist-types/index.d.ts",
+  "exports": {
+    ".": {
+      "@nx-fullstack-learning/source": "./src/index.ts",
+      "types": "./dist-types/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "nx": {
+    "name": "frontend-ui"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+# Add files here to ignore them from prettier formatting
+/dist
+**/dist
+**/dist-types
+**/out-tsc
+**/test-output
+/coverage
+/.nx/cache
+/.nx/workspace-data
+# Prisma owns formatting for both its schema and generated TypeScript client.
+/prisma/schema.prisma
+/libs/backend/core/src/generated/prisma
