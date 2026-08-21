@@ -204,7 +204,7 @@ Senior challenge: repeat with the MongoDB adapter and explain which observations
 
 ### Comment-first learning contract
 
-You—not the tutorial—should write most of the implementation. Existing application files demonstrate the final architecture, but container artifacts and the MongoDB topology script are intentionally absent. Their lessons provide design briefs, documentation routes, failure drills, and acceptance commands—not completed answers.
+You—not the tutorial—should write most of the implementation. Container artifacts and the MongoDB topology script are intentionally absent from the workspace. Their lessons first explain the decision, then provide the exact small block to type, and finally require a success check plus a failure experiment before the next block is introduced.
 
 Code samples are intentionally more heavily commented than ordinary production code. Most meaningful lines carry one of these teaching signals:
 
@@ -216,7 +216,7 @@ Code samples are intentionally more heavily commented than ordinary production c
 
 Comments are attached to meaningful statements, not closing braces or self-explanatory punctuation. After completing a lesson, rewrite the behavior without copying, then remove comments that merely restate syntax. Keep comments that preserve a non-obvious decision, invariant, security rule, or operational warning.
 
-Shell, TypeScript, and SQL examples use their native comment syntax and remain copy-pasteable where the lesson is demonstrating an application concept. Compose, Dockerfile, Nginx, and MongoDB-topology exercises intentionally provide incomplete requirements instead of final files. Strict JSON cannot contain comments; each JSON example therefore has a field-by-field explanation immediately before it. Never paste pseudo-comments into a production JSON document.
+Shell, TypeScript, and SQL examples use their native comment syntax and remain copy-pasteable where the lesson is demonstrating an application concept. Compose, Dockerfile, Nginx, and MongoDB-topology code is given as cumulative, commented increments rather than as files already present in the scaffold. Type and merge those increments yourself; never paste explanatory ellipsis lines. Strict JSON cannot contain comments; each JSON example therefore has a field-by-field explanation immediately before it. Never paste pseudo-comments into a production JSON document.
 
 Suggested checkpoints:
 
@@ -380,7 +380,31 @@ Create a new empty `compose.yaml`. Do not begin from a manifest in a blog post o
 | Initialization           | Create local database `learning` and role `app` with a disposable local password | The official image initializes an empty data directory from environment values |
 | Host boundary            | Publish container port 5432 on host port 5432                                    | The API still runs on the host at this checkpoint                              |
 
-Write a `WHAT`, `WHY`, `BOUNDARY`, or `SECURITY` comment immediately above every setting. Before validation, predict the four indentation levels you need: top-level services, service name, service property, and nested property. If syntax blocks you, consult the linked official Compose reference for the relevant property; do not reveal a completed manifest.
+Write a `WHAT`, `WHY`, `BOUNDARY`, or `SECURITY` comment immediately above every setting. Before validation, predict the four indentation levels you need: top-level services, service name, service property, and nested property. If syntax blocks you, consult the linked official Compose reference and the first annotated increment below; do not skip ahead to later services.
+
+Now type the first working version yourself:
+
+```yaml
+# WHAT: Declare the processes that form this local environment.
+services:
+  # WHAT: Give PostgreSQL the stable DNS and service identity `database`.
+  database:
+    # WHY: Pin the database major instead of accepting a moving `latest` tag.
+    image: postgres:18-alpine
+    # BOUNDARY: These are disposable local credentials, never production secrets.
+    environment:
+      # WHAT: Create this database when an empty data directory initializes.
+      POSTGRES_DB: learning
+      # WHAT: Create the local role that owns the learning database.
+      POSTGRES_USER: app
+      # SECURITY: Use this trivial password only for the local lab.
+      POSTGRES_PASSWORD: app
+    # BOUNDARY: Publish PostgreSQL because the API still runs on the host.
+    ports:
+      - '5432:5432'
+```
+
+Do not add health, persistence, migration, or application services yet. Save this file and prove this smallest version before continuing.
 
 Before starting it, ask Compose to parse and normalize your work:
 
@@ -413,6 +437,21 @@ Add a health-check sibling to the port and environment properties. Author it fro
 
 Before running it, write the exact success condition in plain language and predict the `starting`, `healthy`, and `unhealthy` transitions.
 
+Add this block as a sibling of `image`, `environment`, and `ports` inside `database`:
+
+```yaml
+# CHECK: Ask PostgreSQL whether it accepts an authenticated connection.
+healthcheck:
+  # WHAT: Run the readiness utility already supplied by the image.
+  test: ['CMD-SHELL', 'pg_isready -U app -d learning']
+  # WHY: Check often enough for a responsive lab without a busy loop.
+  interval: 5s
+  # WHY: Bound one hung probe.
+  timeout: 3s
+  # WHY: Allow time for first-time cluster initialization.
+  retries: 10
+```
+
 Recreate the service and watch the transition:
 
 ```bash
@@ -436,6 +475,24 @@ Add persistence without copying a volume block. Your implementation must satisfy
 4. Comment the service mount and top-level declaration separately: one attaches storage; the other declares its lifecycle.
 
 Sketch the resulting YAML tree on paper first. A top-level volume declaration and a service-level volume mount have different indentation and different responsibilities.
+
+Add the service mount under `database`, then add the top-level declaration at the leftmost indentation level:
+
+```yaml
+services:
+  database:
+    # ...keep the image, environment, ports, and health check you wrote.
+    # WHY: Attach persistent state to this service at PostgreSQL 18's volume root.
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+# WHAT: Declare storage whose lifecycle is independent of a database container.
+volumes:
+  # WHAT: Let Compose create and consistently reuse this project-scoped volume.
+  postgres-data:
+```
+
+The ellipsis is explanatory and must not be pasted into YAML. Keep your earlier properties in place.
 
 Prove the lifecycle rather than merely defining it:
 
@@ -1818,6 +1875,34 @@ Extend the file you already wrote; do not replace it with a combined answer. The
 
 Add a comment before each property and update the existing top-level volume map without deleting `postgres-data`.
 
+Type this new service beside `database`, then extend your existing top-level `volumes` map:
+
+```yaml
+services:
+  # ...keep the PostgreSQL service you already built.
+  # WHAT: Provide the optional document database used by the Mongoose lessons.
+  mongodb:
+    # WHY: Do not start MongoDB during PostgreSQL-only work.
+    profiles: ['mongodb']
+    # WHY: Pin the server major used by the compatibility exercises.
+    image: mongo:8.0
+    # WHAT: Enable the replica-set APIs required by transactions and change streams.
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    # BOUNDARY: Publish only while the Mongoose API and shell run on the host.
+    ports:
+      - '27017:27017'
+    # WHY: Preserve document data when the current container is replaced.
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  # ...keep the `postgres-data` declaration you already wrote.
+  # WHAT: Declare MongoDB state independently of the container lifecycle.
+  mongo-data:
+```
+
+Do not paste either ellipsis. Merge the shown additions into the file you produced in Lesson 0.3.
+
 Prove that the profile is optional:
 
 ```bash
@@ -1839,6 +1924,21 @@ The `--replSet` flag enables replica-set mode; it does not initiate members or w
 
 Author a process health check without copying the final YAML. It must run `mongosh` directly, suppress ordinary shell noise, and evaluate a MongoDB `ping` command. Begin with a 5-second interval, 3-second timeout, and 20 retries. Comment why this probe proves command acceptance but does not yet prove that replica-set election completed.
 
+Add this block inside `mongodb` as a sibling of `command`, `ports`, and `volumes`:
+
+```yaml
+# CHECK: Prove the server accepts commands before administrative setup runs.
+healthcheck:
+  # WHAT: Execute a cheap ping with the shell included in the image.
+  test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+  # WHY: Give startup enough time without hiding a failure for minutes.
+  interval: 5s
+  # WHY: Bound each shell attempt.
+  timeout: 3s
+  # WHY: First initialization can be slower than a warm restart.
+  retries: 20
+```
+
 This probe answers “can the server accept a command?” It does not promise that a writable primary exists. Replica readiness will be proven by the one-shot topology setup.
 
 #### Exercise 3B.0C — Write idempotent replica initialization
@@ -1852,7 +1952,47 @@ Create `infra/mongodb/init-replica-and-indexes.js` yourself. Write its algorithm
 5. Throw when the deadline expires so Compose receives a non-zero exit.
 6. Run the script twice without reinitializing or destroying the existing set.
 
-Comment every branch with its idempotency or failure purpose. Use the MongoDB shell documentation to find `rs.status`, `rs.initiate`, `db.adminCommand`, and `sleep`; the guide intentionally does not assemble them for you.
+Comment every branch with its idempotency or failure purpose. First use the MongoDB shell documentation to identify `rs.status`, `rs.initiate`, `db.adminCommand`, and `sleep`; then type and compare your attempt with the annotated implementation below.
+
+Implement the algorithm in `infra/mongodb/init-replica-and-indexes.js`:
+
+```javascript
+// WHAT: Reuse an already initialized topology when the setup job runs again.
+try {
+  // CHECK: This succeeds only after replica-set configuration exists.
+  rs.status();
+} catch (error) {
+  // WHAT: Configure the one local member using the DNS name visible to containers.
+  rs.initiate({
+    // WHAT: Match the `--replSet rs0` server argument.
+    _id: 'rs0',
+    // WHY: Other Compose services resolve `mongodb`; their localhost is different.
+    members: [{ _id: 0, host: 'mongodb:27017' }],
+  });
+}
+
+// CHECK: Remember whether election completed before the deadline.
+let primaryReady = false;
+// WHY: Fail after roughly one minute instead of hanging forever.
+for (let attempt = 1; attempt <= 120; attempt += 1) {
+  // WHAT: Ask whether this member currently accepts writes as primary.
+  if (db.adminCommand({ hello: 1 }).isWritablePrimary) {
+    // CHECK: Preserve success for the final assertion.
+    primaryReady = true;
+    // WHAT: Stop polling as soon as the invariant holds.
+    break;
+  }
+  // WHY: Yield between attempts rather than spin in a tight loop.
+  sleep(500);
+}
+
+// CHECK: Make an election failure visible through the setup service's exit code.
+if (!primaryReady) {
+  throw new Error('MongoDB replica set did not elect a primary');
+}
+```
+
+Type it rather than downloading it. Then explain why the catch handles only the expected uninitialized state in a hardened version instead of swallowing every administrative error.
 
 Next, author a one-shot `mongo-setup` Compose service. It must:
 
@@ -1864,6 +2004,37 @@ Next, author a one-shot `mongo-setup` Compose service. It must:
 - remain successfully exited instead of restarting.
 
 Before running it, predict the service's expected final state and exit code. Do not continue until `docker compose config` shows the dependency and read-only mount you intended.
+
+Add this service beside `database` and `mongodb`:
+
+```yaml
+services:
+  # ...keep the services you already built.
+  # WHAT: Initialize replica topology as a finite, observable operation.
+  mongo-setup:
+    # WHY: Setup belongs to the same optional path as MongoDB.
+    profiles: ['mongodb']
+    # WHAT: Reuse the matching image so `mongosh` is available.
+    image: mongo:8.0
+    # WHAT: Run your script against the member before replica discovery is ready.
+    command:
+      - mongosh
+      - mongodb://mongodb:27017/admin?directConnection=true
+      - --quiet
+      - --file
+      - /setup/init-replica-and-indexes.js
+    # BOUNDARY: Make administrative source readable but not writable.
+    volumes:
+      - ./infra/mongodb:/setup:ro
+    # WHY: Do not run topology commands before MongoDB accepts commands.
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    # WHY: Exit zero is successful finite work, not a process to restart.
+    restart: 'no'
+```
+
+Again, merge the block into your cumulative file and omit the ellipsis line.
 
 Run it twice to prove idempotency:
 
@@ -2304,6 +2475,23 @@ Create `.dockerignore` before the first build. Derive its entries rather than co
 
 For each pattern, write a comment that states whether the goal is secrecy, reproducibility, context size, or cache correctness. Use `du` and Docker's transferred-context output to prove the file changed the build input.
 
+Type this initial `.dockerignore`:
+
+```dockerignore
+# SECURITY: Git history and metadata are not application build inputs.
+.git
+# WHY: Local Nx caches are machine-specific and can be large.
+.nx
+# WHY: Reinstall dependencies from the lockfile inside the build environment.
+node_modules
+# SECURITY: Never allow ignored local configuration into image layers.
+.env
+# WHY: Reproduce compiled output rather than copying stale host artifacts.
+**/dist
+# WHY: Test evidence belongs in CI artifacts, not application images.
+**/test-output
+```
+
 ```bash
 # CHECK: Measure the repository before ignore rules so the reduction is explicit.
 du -sh .
@@ -2326,6 +2514,27 @@ Create `apps/api/Dockerfile` with one deliberately naive stage. Work from this o
 7. Start the compiled `apps/api/dist/main.js` entry directly with Node.
 
 Add a teaching comment before every instruction. Use the Dockerfile reference to choose the instruction for each behavior, and predict which unnecessary files the image will contain before building it.
+
+Now implement that baseline in `apps/api/Dockerfile`:
+
+```dockerfile
+# WHAT: Begin with the same Node major used by the workspace and CI.
+FROM node:24-alpine
+# WHAT: Make every following relative path deterministic.
+WORKDIR /workspace
+# WHAT: Copy the bounded repository context for the first measurable attempt.
+COPY . .
+# WHY: Reproduce the exact dependency graph recorded in package-lock.json.
+RUN npm ci
+# WHAT: Generate Prisma Client without embedding a deploy-time credential.
+RUN DATABASE_URL=postgresql://unused:unused@localhost:5432/unused npx prisma generate
+# WHAT: Produce the API's optimized output through its Nx target.
+RUN npx nx build api --configuration=production
+# BOUNDARY: Start the compiled process directly, not through a dev wrapper.
+CMD ["node", "apps/api/dist/main.js"]
+```
+
+This is intentionally inefficient. Do not optimize it before recording its context, layers, and size; you need a baseline to make the next lesson measurable.
 
 Build it, record size and history, and predict why it contains source, tests, compilers, Prisma CLI, and development packages:
 
@@ -2372,7 +2581,67 @@ Author the stages from this contract. Complete and inspect one row before implem
 | `build`        | Dependency stage plus the bounded repository source                                | Generate Prisma Client and run the production API build | Compiled API output exists at the path Nx actually emits               |
 | `runtime`      | Fresh Node 24 Alpine base, production manifests/dependencies, compiled output only | Set production mode and discard build tooling/source    | Unprivileged `node` user, documented port 3000, exec-form Node command |
 
-Before typing each stage, write its allowed-files list. Use `COPY --from` only after you can explain which earlier filesystem it reads. Do not inspect another completed Dockerfile; the build and image-inspection commands below are your feedback loop.
+Before typing each stage, write its allowed-files list. Use `COPY --from` only after you can explain which earlier filesystem it reads. Then replace the baseline with the following stages, typing and building one named target at a time:
+
+```dockerfile
+# WHAT: Install the exact workspace dependency graph in a reusable stage.
+FROM node:24-alpine AS dependencies
+# WHAT: Give every later relative path a predictable workspace root.
+WORKDIR /workspace
+# WHY: Copy dependency metadata before source so source edits reuse this layer.
+COPY package.json package-lock.json nx.json tsconfig.json tsconfig.base.json ./
+# WHAT: Preserve project-level metadata required by npm workspaces.
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY libs/backend/core/package.json libs/backend/core/package.json
+COPY libs/frontend/ui/package.json libs/frontend/ui/package.json
+# WHY: Reproduce the lockfile exactly and fail when it has drifted.
+RUN npm ci
+
+# WHAT: Create a finite image that owns migration execution.
+FROM dependencies AS migration
+# WHAT: Copy Prisma CLI configuration without unrelated source.
+COPY prisma.config.ts ./
+# WHAT: Include schema, reviewed history, and the learning seed file.
+COPY prisma ./prisma
+# BOUNDARY: Apply reviewed history by default; local Compose may append its seed.
+CMD ["npx", "prisma", "migrate", "deploy"]
+
+# WHAT: Compile the backend with build tools confined to this stage.
+FROM dependencies AS build
+# WHAT: Add source only after the dependency layer can be reused.
+COPY . .
+# WHY: Regenerate from checked-in schema so a stale client cannot compile.
+RUN DATABASE_URL=postgresql://unused:unused@localhost:5432/unused npx prisma generate
+# WHAT: Produce the API's optimized Nx output.
+RUN npx nx build api --configuration=production
+
+# BOUNDARY: Start fresh so source and compilers do not enter runtime.
+FROM node:24-alpine AS runtime
+# WHAT: Disable development-only runtime behavior.
+ENV NODE_ENV=production
+# WHAT: Use an application-owned runtime working directory.
+WORKDIR /app
+# WHY: Reproduce only the runtime dependency graph from manifests.
+COPY package.json package-lock.json ./
+# WHAT: Preserve workspace metadata required by the production install.
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY libs/backend/core/package.json libs/backend/core/package.json
+COPY libs/frontend/ui/package.json libs/frontend/ui/package.json
+# WHY: Omit development and optional packages, then remove npm's cache.
+RUN npm ci --omit=dev --omit=optional && npm cache clean --force
+# WHAT: Copy only compiled output from the build stage.
+COPY --from=build /workspace/apps/api/dist ./dist
+# SECURITY: Drop root privileges before accepting network requests.
+USER node
+# WHAT: Document the listener; Compose or ECS publishes it.
+EXPOSE 3000
+# WHAT: Use exec form so Node receives termination signals directly.
+CMD ["node", "dist/main.js"]
+```
+
+After each stage works, explain its inputs, cache invalidation trigger, output, and what must not cross into the next stage.
 
 Verify every stage instead of waiting for the final build:
 
@@ -2408,6 +2677,40 @@ Create `apps/web/Dockerfile` without adapting the API file line for line. It mus
 
 Comment each instruction and verify the emitted Nx path on the host before deciding the cross-stage source path.
 
+Then type `apps/web/Dockerfile`:
+
+```dockerfile
+# WHAT: Install the workspace graph used to compile browser assets.
+FROM node:24-alpine AS dependencies
+# WHAT: Use the same deterministic monorepo working directory as the API build.
+WORKDIR /workspace
+# WHY: Copy dependency metadata before source to preserve the install cache.
+COPY package.json package-lock.json nx.json tsconfig.json tsconfig.base.json ./
+# WHAT: Preserve project-level metadata required by npm workspaces.
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY libs/backend/core/package.json libs/backend/core/package.json
+COPY libs/frontend/ui/package.json libs/frontend/ui/package.json
+# WHY: Reproduce the lockfile exactly inside the build environment.
+RUN npm ci
+
+# WHAT: Compile browser assets with build tools confined to this stage.
+FROM dependencies AS build
+# WHAT: Add source only after the dependency layer can be reused.
+COPY . .
+# WHAT: Emit fingerprinted static files through the Nx production target.
+RUN npx nx build @nx-fullstack-learning/web --configuration=production
+
+# BOUNDARY: Serve static output without Node, npm, Nx, or source code.
+FROM nginx:1.29-alpine AS runtime
+# WHAT: Replace the default virtual host with the configuration you will write.
+COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+# WHAT: Copy only compiled output from the build stage.
+COPY --from=build /workspace/apps/web/dist /usr/share/nginx/html
+# WHAT: Document the internal listener; Compose publishes it later.
+EXPOSE 8080
+```
+
 Create `apps/web/nginx.conf` incrementally rather than writing its final form:
 
 1. Define one server listening on 8080, rooted at Nginx's static document directory, with `index.html` as its index.
@@ -2417,7 +2720,39 @@ Create `apps/web/nginx.conf` incrementally rather than writing its final form:
 5. Give the entry document a revalidation policy so it can discover new asset filenames.
 6. Defer `/api/` proxying until the API service exists in Lesson 4.3.
 
-Use the Nginx directive reference to author the syntax. Every directive must have a comment describing routing, caching, or failure behavior; the tutorial intentionally provides no finished server block.
+Implement steps 1–2 with only the outer server directives first. After recording the expected direct-route failure, add the two location blocks shown below:
+
+```nginx
+# WHAT: Define the one local virtual server used by the web container.
+server {
+  # WHAT: Listen on the internal port published later by Compose.
+  listen 8080;
+  # WHAT: Accept any local Host value in this learning environment.
+  server_name _;
+  # WHAT: Serve the compiled files copied by the Docker build.
+  root /usr/share/nginx/html;
+  # WHAT: Resolve directory requests to the SPA entry document.
+  index index.html;
+
+  # WHY: Fingerprinted assets may be cached because content changes rename them.
+  location /assets/ {
+    # CHECK: Missing assets remain real 404 responses, never the SPA shell.
+    try_files $uri =404;
+    # WHAT: Allow browsers and CDNs to retain immutable content for one year.
+    add_header Cache-Control "public, max-age=31536000, immutable";
+  }
+
+  # BOUNDARY: Let React Router handle paths that are not physical files.
+  location / {
+    # WHAT: Serve a real file first, otherwise return the SPA entry document.
+    try_files $uri /index.html;
+    # WHY: Revalidate the entry document so it points at current asset names.
+    add_header Cache-Control "no-cache";
+  }
+}
+```
+
+Type the block and explain each directive. Add `/api/` only in Lesson 4.3 so this file grows in the same order as the running system.
 
 The web runtime is Nginx, not a Node development server. Fingerprinted assets receive long immutable caching; `index.html` does not, so it can point at the latest filenames.
 
@@ -2463,6 +2798,36 @@ An API replica must not race other replicas to alter production schema during st
 
 Write the service without looking ahead. Comment the build context, target, URL boundary, chained command, dependency condition, and restart policy. Then use the commands below as the grader.
 
+Add this service beside the database services already in your file:
+
+```yaml
+services:
+  # ...keep the database services you already built.
+  # WHAT: Apply reviewed schema history before any API replica starts.
+  migrate:
+    # WHAT: Build the purpose-specific stage from the shared API Dockerfile.
+    build:
+      # WHY: Nx needs the repository root as its dependency-aware context.
+      context: .
+      # WHAT: Select the Dockerfile you created in Lesson 4.2.
+      dockerfile: apps/api/Dockerfile
+      # WHY: Keep Prisma CLI and migration files out of the API runtime stage.
+      target: migration
+    # BOUNDARY: Reach PostgreSQL through Compose DNS, not host loopback.
+    environment:
+      DATABASE_URL: postgresql://app:app@database:5432/learning
+    # WHAT: Seed only after migration succeeds; `&&` preserves that ordering.
+    command: ['sh', '-c', 'npx prisma migrate deploy && npx prisma db execute --file prisma/seed.sql']
+    # WHY: Process existence is insufficient; wait for authenticated readiness.
+    depends_on:
+      database:
+        condition: service_healthy
+    # WHY: Exit zero is successful finite work, not a process to restart.
+    restart: 'no'
+```
+
+Merge the service into your cumulative file and omit the ellipsis line.
+
 Run the service in the foreground first so its finite lifecycle is visible:
 
 ```bash
@@ -2500,6 +2865,62 @@ Add the application only after migration completion can be expressed in Compose.
 
 Write one explanatory comment for every property. Choose the exact Compose syntax from the official build, environment, health-check, dependency, and filesystem references. Do not proceed until `docker compose config` proves the resolved build path, dependency condition, port, and tmpfs.
 
+Now add the service:
+
+```yaml
+services:
+  # ...keep every service already built.
+  # WHAT: Run the production API artifact with the Prisma adapter selected.
+  api:
+    # WHAT: Build the Dockerfile's final runtime stage.
+    build:
+      # WHY: The API consumes libraries elsewhere in the Nx workspace.
+      context: .
+      # WHAT: Select the API-specific multi-stage build.
+      dockerfile: apps/api/Dockerfile
+    # BOUNDARY: Supply environment-specific configuration at container creation.
+    environment:
+      # WHAT: Disable development-only library behavior.
+      NODE_ENV: production
+      # WHY: Listen beyond container loopback so the project network can connect.
+      HOST: 0.0.0.0
+      # WHAT: Keep the internal listener explicit.
+      PORT: 3000
+      # WHAT: Select Prisma only at the process composition root.
+      DATABASE_CLIENT: prisma
+      # BOUNDARY: Reach PostgreSQL by service DNS rather than localhost.
+      DATABASE_URL: postgresql://app:app@database:5432/learning
+      # SECURITY: Allow only the local web origin to read browser responses.
+      CORS_ORIGINS: http://localhost:8080
+      # WHAT: Configure AWS clients without embedding access-key credentials.
+      AWS_REGION: eu-central-1
+    # BOUNDARY: Publish direct access for local health and contract tests.
+    ports:
+      - '3000:3000'
+    # WHY: Never serve against unapplied schema history.
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # CHECK: Test database-aware readiness using Node already in the image.
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      # WHAT: Probe frequently enough for a responsive local lab.
+      interval: 5s
+      # WHY: Bound one hung HTTP attempt.
+      timeout: 3s
+      # WHY: Allow driver startup before declaring failure.
+      retries: 10
+    # WHY: Forward signals and reap orphaned child processes.
+    init: true
+    # SECURITY: Reject undeclared writes to the runtime filesystem.
+    read_only: true
+    # WHAT: Restore only the intentional scratch path in memory.
+    tmpfs:
+      - /tmp
+```
+
+Merge it into the existing `services` map and omit the ellipsis line.
+
 ```bash
 # WHAT: Reconcile the API and every dependency it declares.
 docker compose up api --build -d --wait
@@ -2527,6 +2948,26 @@ First extend `apps/web/nginx.conf` with an API location you author yourself. It 
 
 Research how a trailing URI on `proxy_pass` changes path rewriting, predict both forms, and choose the form that preserves the API prefix. Comment every directive with the proxy-boundary information it carries.
 
+Add this location before the general `/` location in `apps/web/nginx.conf`:
+
+```nginx
+  # BOUNDARY: Keep browser API calls same-origin and forward them internally.
+  location /api/ {
+    # WHAT: Resolve the API by Compose service DNS and preserve the request URI.
+    proxy_pass http://api:3000;
+    # WHAT: Use persistent HTTP/1.1 upstream connections.
+    proxy_http_version 1.1;
+    # WHAT: Preserve the browser-visible authority for policy and logs.
+    proxy_set_header Host $host;
+    # WHAT: Append the client and proxy chain rather than replacing it.
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    # WHAT: Forward the scheme observed at this proxy boundary.
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+```
+
+The indentation assumes the block is inside the `server` you wrote in Lesson 4.2.
+
 Then author the `web` Compose service from these requirements:
 
 1. Build the web Dockerfile from the root Nx context.
@@ -2536,6 +2977,36 @@ Then author the `web` Compose service from these requirements:
 5. Provide in-memory writable paths only for the Nginx cache and runtime-state directories.
 
 Render the resolved model and draw the browser → Nginx → API network path before starting the service.
+
+Then add the web service to your cumulative Compose file:
+
+```yaml
+services:
+  # ...keep every service already built.
+  # WHAT: Serve the React artifact and proxy same-origin API requests.
+  web:
+    # WHAT: Build the Nginx runtime created in Lesson 4.2.
+    build:
+      # WHY: Nx needs frontend source and its shared library in the root context.
+      context: .
+      # WHAT: Select the web-specific multi-stage build.
+      dockerfile: apps/web/Dockerfile
+    # BOUNDARY: Expose the single browser-facing local entry point.
+    ports:
+      - '8080:8080'
+    # WHY: Wait for initial API readiness before creating the web container.
+    depends_on:
+      api:
+        condition: service_healthy
+    # SECURITY: Static assets and configuration must not mutate at runtime.
+    read_only: true
+    # WHAT: Give Nginx only its required ephemeral writable paths.
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+```
+
+Omit the ellipsis line and preserve your earlier services.
 
 ```bash
 # WHAT: Build and start the complete default dependency graph.
@@ -2564,6 +3035,64 @@ Only these persistence and host-boundary decisions should differ:
 - startup depends on successful completion of `mongo-setup`.
 
 Build definition, production/listener configuration, CORS, AWS region, readiness probe, init behavior, read-only root, and `/tmp` policy must remain equivalent to `api`. Do not duplicate by blind copy/paste: compare the rendered services and explain every intentional difference.
+
+After making that comparison, add the alternate service:
+
+```yaml
+services:
+  # ...keep every service already built.
+  # WHAT: Run the same API artifact with the Mongoose composition selected.
+  api-mongo:
+    # WHY: Keep this comparative path outside normal PostgreSQL startup.
+    profiles: ['mongodb']
+    # WHAT: Reuse the exact production API build.
+    build:
+      # WHY: The Mongoose adapter lives in the shared backend library graph.
+      context: .
+      # WHAT: Select the already-proved API Dockerfile.
+      dockerfile: apps/api/Dockerfile
+    # BOUNDARY: Change persistence only at the process composition root.
+    environment:
+      # WHAT: Disable development-only library behavior.
+      NODE_ENV: production
+      # WHY: Listen beyond container loopback so the project network can connect.
+      HOST: 0.0.0.0
+      # WHAT: Keep the internal listener identical to the Prisma API.
+      PORT: 3000
+      # WHAT: Select Mongoose without changing routers or services.
+      DATABASE_CLIENT: mongoose
+      # BOUNDARY: Reach the named replica-set member through service DNS.
+      MONGODB_URL: mongodb://mongodb:27017/learning?replicaSet=rs0&directConnection=true
+      # SECURITY: Keep browser-origin policy identical across adapters.
+      CORS_ORIGINS: http://localhost:8080
+      # WHAT: Configure AWS clients without embedding access-key credentials.
+      AWS_REGION: eu-central-1
+    # BOUNDARY: Keep both adapters available on different host ports.
+    ports:
+      - '3001:3000'
+    # WHY: Wait for topology initialization, not only the MongoDB process.
+    depends_on:
+      mongo-setup:
+        condition: service_completed_successfully
+    # CHECK: Apply the same readiness contract to the alternate adapter.
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      # WHAT: Probe frequently enough for a responsive local lab.
+      interval: 5s
+      # WHY: Bound one hung HTTP attempt.
+      timeout: 3s
+      # WHY: Allow replica discovery before declaring failure.
+      retries: 10
+    # WHY: Keep process and filesystem policy identical across adapters.
+    init: true
+    # SECURITY: Reject undeclared runtime filesystem writes.
+    read_only: true
+    # WHAT: Restore only the intentional scratch path in memory.
+    tmpfs:
+      - /tmp
+```
+
+Omit the ellipsis line. Run `docker compose --profile mongodb config` and compare the resolved `api` and `api-mongo` properties before starting either one.
 
 ```bash
 # CHECK: The default model still excludes every profiled MongoDB service.

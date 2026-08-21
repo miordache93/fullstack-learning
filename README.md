@@ -14,7 +14,7 @@ npm run dev
 
 Open `http://localhost:4200`. API liveness should work while database readiness initially fails; Lesson 0.3 then asks you to create `compose.yaml` yourself and add PostgreSQL one concern at a time.
 
-`compose.yaml`, `.dockerignore`, both application Dockerfiles, the Nginx configuration, and the MongoDB topology script are intentionally absent. You create them progressively in Lessons 0.3, 3B.0, 4.2, and 4.3 from requirements and verification checks rather than completed answers.
+`compose.yaml`, `.dockerignore`, both application Dockerfiles, the Nginx configuration, and the MongoDB topology script are intentionally absent. Lessons 0.3, 3B.0, 4.2, and 4.3 provide exact, commented increments for you to type and verify—without placing the completed files in the starter.
 
 After building the PostgreSQL service in Lesson 0.3, run local application processes against it:
 
