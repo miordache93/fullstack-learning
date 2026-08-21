@@ -1,15 +1,33 @@
-:root {
-  font-family: system-ui, sans-serif;
-  color: #172033;
-  background: #f7f8fb;
-}
-
-body {
-  margin: 0;
-}
-
-main {
+/* WHAT: Keep feature content readable without introducing a UI framework. */
+.shell {
   max-width: 60rem;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1rem;
+}
+
+/* WHAT: Make navigation and controls scannable with a small consistent gap. */
+nav,
+.toolbar,
+.task-form,
+.task-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* WHAT: Separate repeated rows while keeping the visual treatment minimal. */
+.task-row {
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #d0d7de;
+}
+
+/* WHAT: Density is a client preference, not a different server query. */
+.task-list--compact .task-row {
+  padding: 0.25rem 0;
+}
+
+/* WHAT: Preserve the label while communicating completion visually. */
+.task-row__done {
+  text-decoration: line-through;
 }

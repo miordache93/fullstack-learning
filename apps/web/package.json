@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@nx-fullstack-learning/frontend-ui": "*",
-    "react-router-dom": "7.18.2"
+    "@tanstack/react-query": "^5.101.4",
+    "react-router-dom": "7.18.2",
+    "zustand": "^5.0.15"
   }
 }

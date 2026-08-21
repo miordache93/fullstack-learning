@@ -8,7 +8,15 @@ export default defineConfig(() => ({
   server: {
     port: 4200,
     host: 'localhost',
-    // TODO(lesson): Add the `/api` development proxy with the first HTTP slice.
+    // BOUNDARY: Keep browser requests same-origin during host development.
+    proxy: {
+      // WHAT: Forward only API paths to the separately running Node process.
+      '/api': {
+        target: 'http://localhost:3000',
+        // WHY: Present the target host to the API instead of the Vite origin.
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port: 4300,

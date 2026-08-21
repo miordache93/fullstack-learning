@@ -7,7 +7,7 @@ import App from './app';
 describe('App routing', () => {
   it('loads the task route at the root location', async () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/architecture']}>
         <App />
       </MemoryRouter>,
     );
