@@ -1,0 +1,31 @@
+// WHAT: Generate visible ESM TypeScript inside the library that owns persistence.
+generator client {
+  provider            = "prisma-client"
+  output              = "../libs/backend/core/src/generated/prisma"
+  moduleFormat        = "esm"
+  // WHY: Keep compiled Node ESM imports resolvable outside a bundler.
+  importFileExtension = "js"
+}
+
+// BOUNDARY: Select PostgreSQL semantics while prisma.config.ts supplies credentials.
+datasource db {
+  provider = "postgresql"
+}
+
+// WHAT: Map a domain-friendly model to an explicit SQL table contract.
+model Task {
+  // WHY: Database-generated UUIDs give every writer the same identity policy.
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(200)
+  description String?
+  done        Boolean  @default(false)
+  priority    String   @default("medium") @db.VarChar(10)
+  // WHY: Increment this token to reject a write based on a stale read.
+  version     Int      @default(1)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  // WHY: Match the deterministic newest-first API access path.
+  @@index([createdAt(sort: Desc), id], map: "idx_tasks_created_at")
+  @@map("tasks")
+}

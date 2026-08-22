@@ -1,5 +1,9 @@
-// WHAT: Keep all Branch 01 exports, then add these HTTP and composition capabilities.
+export * from './lib/config.js';
+export * from './lib/db.js';
 export * from './lib/http/create-app.js';
-export * from './lib/http/middleware.js';
-export * from './lib/http/task.router.js'
-export * from './lib/tasks/index.js';
+export * from './lib/persistence/create-persistence.js';
+export * from './lib/persistence/persistence.js';
+export * from './lib/persistence/prisma-persistence.adapter.js';
+export * from './lib/tasks/plain-sql.selectors.js';
+export * from './lib/tasks/prisma-task.repository.js';
+export * from './lib/tasks/task.service.js';

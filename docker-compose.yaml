@@ -1,0 +1,35 @@
+# WHAT: Declare the processes that form this local environment.
+services:
+  # WHAT: Give PostgreSQL the stable DNS and service identity `database`.
+  database:
+    # WHY: Pin the database major instead of accepting a moving `latest` tag.
+    image: postgres:18-alpine
+     # WHY: Attach persistent state to this service at PostgreSQL 18's volume root.
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    # BOUNDARY: These are disposable local credentials, never production secrets.
+    environment:
+      # WHAT: Create this database when an empty data directory initializes.
+      POSTGRES_DB: learning
+      # WHAT: Create the local role that owns the learning database.
+      POSTGRES_USER: app
+      # SECURITY: Use this trivial password only for the local lab.
+      POSTGRES_PASSWORD: app
+    # BOUNDARY: Publish PostgreSQL because the API still runs on the host.
+    ports:
+      - '5432:5432'
+    # CHECK: Ask PostgreSQL whether it accepts an authenticated connection.
+    healthcheck:
+      # WHAT: Run the readiness utility already supplied by the image.
+      test: ['CMD-SHELL', 'pg_isready -U app -d learning']
+      # WHY: Check often enough for a responsive lab without a busy loop.
+      interval: 5s
+      # WHY: Bound one hung probe.
+      timeout: 3s
+      # WHY: Allow time for first-time cluster initialization.
+      retries: 10
+
+# WHAT: Declare storage whose lifecycle is independent of a database container.
+volumes:
+  # WHAT: Let Compose create and consistently reuse this project-scoped volume.
+  postgres-data:

@@ -7,7 +7,14 @@ import { createApp } from './create-app.js';
 
 // WHAT: Compose the same layers as production with an isolated in-memory adapter.
 function setup() {
-  return createApp(new TaskService(new InMemoryTaskRepository()));
+  // WHAT: Use real domain/in-memory behavior for HTTP contract tests.
+  const taskService = new TaskService(new InMemoryTaskRepository());
+  // BOUNDARY: Stub only the external lifecycle capability this test does not own.
+  const persistence = {
+    kind: 'postgresql-prisma' as const,
+    checkReadiness: async () => undefined,
+  };
+  return createApp({ taskService, persistence });
 }
 
 describe('task HTTP contract', () => {
