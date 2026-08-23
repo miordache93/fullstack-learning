@@ -39,6 +39,9 @@ export const taskApi = {
     const done = filter === 'all' ? '' : `&done=${filter === 'done'}`;
     return request<TaskListResponse>(`/api/tasks?limit=200${done}`);
   },
+  // WHY: The virtualization lab pages through the real dataset instead of loading it all.
+  page: ({ offset, limit }: { offset: number; limit: number }) =>
+    request<TaskListResponse>(`/api/tasks?limit=${limit}&offset=${offset}`),
   create: (input: CreateTask) =>
     request<{ data: Task }>('/api/tasks', {
       method: 'POST',
