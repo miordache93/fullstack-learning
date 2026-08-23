@@ -26,7 +26,11 @@ export default function TasksPage() {
     const nextTitle = title.trim();
     if (!nextTitle) return;
     // WHAT: Clear the draft only after the server accepts the task.
-    createTask.mutate({ title: nextTitle, priority: 'medium' }, { onSuccess: () => setTitle('') });
+    createTask.mutate(
+      // WHY: Generated once per submit, so retrying this exact attempt cannot create a duplicate.
+      { input: { title: nextTitle, priority: 'medium' }, idempotencyKey: crypto.randomUUID() },
+      { onSuccess: () => setTitle('') },
+    );
   }
 
   return (

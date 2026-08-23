@@ -42,10 +42,12 @@ export const taskApi = {
   // WHY: The virtualization lab pages through the real dataset instead of loading it all.
   page: ({ offset, limit }: { offset: number; limit: number }) =>
     request<TaskListResponse>(`/api/tasks?limit=${limit}&offset=${offset}`),
-  create: (input: CreateTask) =>
+  create: (input: CreateTask, idempotencyKey?: string) =>
     request<{ data: Task }>('/api/tasks', {
       method: 'POST',
       body: JSON.stringify(input),
+      // WHY: A stable key lets the server replay this exact attempt instead of duplicating it.
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     }),
   update: (task: Task, patch: Partial<Pick<Task, 'title' | 'done'>>) =>
     request<{ data: Task }>(`/api/tasks/${task.id}`, {

@@ -23,8 +23,9 @@ export function useTasks(filter: TaskFilter) {
 export function useCreateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    // WHAT: Keep the mutation command type visible at the hook boundary.
-    mutationFn: (input: CreateTask) => taskApi.create(input),
+    // WHY: One key per attempt makes retrying this exact call safe instead of duplicating it.
+    mutationFn: ({ input, idempotencyKey }: { input: CreateTask; idempotencyKey: string }) =>
+      taskApi.create(input, idempotencyKey),
     // CHECK: Refetch every filtered list after server success.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
   });
