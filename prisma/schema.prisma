@@ -32,6 +32,25 @@ model Task {
   @@map("tasks")
 }
 
+// WHAT: Deduplicate a retried command whose prior outcome the caller never observed.
+model IdempotencyRecord {
+  id BigInt @id @default(autoincrement())
+  // WHAT: Isolate keys per command so unrelated endpoints can never collide.
+  scope String @db.VarChar(100)
+  // WHAT: Caller-chosen retry-correlation token, unique only within its scope.
+  key String @db.VarChar(200)
+  // CHECK: Detect a reused key sent with a different request body.
+  requestHash String @map("request_hash") @db.VarChar(64)
+  status String @default("pending") @db.VarChar(20)
+  statusCode Int @map("status_code")
+  responseBody Json @map("response_body")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // WHY: One caller-chosen key can only ever mean one command per scope.
+  @@unique([scope, key], map: "idempotency_records_scope_key")
+  @@map("idempotency_records")
+}
+
 // WHAT: Preserve transition evidence separately from the current task projection.
 model TaskEvent {
   // WHAT: Use an efficient database-native sequence for internal event identity.

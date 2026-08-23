@@ -26,3 +26,10 @@ export class ConflictError extends HttpError {
     super(409, message, 'VERSION_CONFLICT');
   }
 }
+
+// WHY: A version token protects updates based on prior reads; this protects retried commands instead.
+export class IdempotencyConflictError extends HttpError {
+  constructor(message = 'This idempotency key was already used with a different request') {
+    super(409, message, 'IDEMPOTENCY_KEY_REUSED');
+  }
+}

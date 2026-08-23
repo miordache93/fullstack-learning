@@ -42,6 +42,9 @@ export const CompleteTaskSchema = z.object({
   version: z.number().int().positive(),
 });
 
+// BOUNDARY: A caller-chosen retry-correlation token, bounded before it reaches storage.
+export const IdempotencyKeySchema = z.string().trim().min(1).max(200);
+
 // BOUNDARY: Query strings are strings until this parser deliberately transforms them.
 export const ListTasksSchema = z.object({
   // WHY: Bound page size to protect memory and response latency.

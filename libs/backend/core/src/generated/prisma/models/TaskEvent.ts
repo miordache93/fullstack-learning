@@ -397,14 +397,6 @@ export type TaskEventUncheckedUpdateManyWithoutTaskNestedInput = {
   deleteMany?: Prisma.TaskEventScalarWhereInput | Prisma.TaskEventScalarWhereInput[]
 }
 
-export type BigIntFieldUpdateOperationsInput = {
-  set?: bigint | number
-  increment?: bigint | number
-  decrement?: bigint | number
-  multiply?: bigint | number
-  divide?: bigint | number
-}
-
 export type TaskEventCreateWithoutTaskInput = {
   id?: bigint | number
   eventType: string

@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type Task = Prisma.TaskModel
 /**
+ * Model IdempotencyRecord
+ * 
+ */
+export type IdempotencyRecord = Prisma.IdempotencyRecordModel
+/**
  * Model TaskEvent
  * 
  */

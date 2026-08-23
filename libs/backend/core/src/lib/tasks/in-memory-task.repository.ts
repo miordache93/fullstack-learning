@@ -1,7 +1,13 @@
 // WHAT: Use platform UUID generation so identity matches both future adapters.
 import { randomUUID } from 'node:crypto';
 // WHAT: Import the domain port and result types this adapter must satisfy.
-import type { Task, TaskRepository, UpdateResult } from './task.repository.js';
+import type {
+  IdempotentCreateCommand,
+  IdempotentCreateResult,
+  Task,
+  TaskRepository,
+  UpdateResult,
+} from './task.repository.js';
 // WHAT: Import validated command shapes, not HTTP request objects.
 import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
 
@@ -9,6 +15,8 @@ import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.sc
 export class InMemoryTaskRepository implements TaskRepository {
   // WHY: Keep mutable records private so callers cannot bypass version checks.
   private readonly records = new Map<string, Task>();
+  // WHY: Remember prior committed outcomes so a retried key can replay instead of repeat.
+  private readonly idempotencyRecords = new Map<string, { requestHash: string; statusCode: number; body: unknown }>();
 
   async list(input: ListTasksInput) {
     // WHAT: Work on a new array rather than exposing the internal Map.
@@ -50,6 +58,20 @@ export class InMemoryTaskRepository implements TaskRepository {
     this.records.set(task.id, task);
     // BOUNDARY: Do not expose the mutable stored object.
     return { ...task };
+  }
+
+  async createIdempotent({ scope, key, requestHash, input }: IdempotentCreateCommand): Promise<IdempotentCreateResult> {
+    const recordKey = `${scope}:${key}`;
+    const existing = this.idempotencyRecords.get(recordKey);
+    if (existing) {
+      if (existing.requestHash !== requestHash) return { kind: 'conflict' };
+      return { kind: 'replayed', statusCode: existing.statusCode, body: existing.body };
+    }
+
+    const task = await this.create(input);
+    // WHY: No await separates the check above from this set, so no other call can interleave.
+    this.idempotencyRecords.set(recordKey, { requestHash, statusCode: 201, body: { data: task } });
+    return { kind: 'created', task };
   }
 
   async update(id: string, input: UpdateTaskInput): Promise<UpdateResult> {

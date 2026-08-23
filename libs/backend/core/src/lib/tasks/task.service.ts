@@ -1,7 +1,7 @@
 // WHAT: Translate persistence outcomes into use-case-aware errors here.
-import { ConflictError, NotFoundError } from '../errors.js';
+import { ConflictError, IdempotencyConflictError, NotFoundError } from '../errors.js';
 // BOUNDARY: The service knows only the domain-owned port.
-import type { TaskRepository, UpdateResult } from './task.repository.js';
+import type { IdempotentCreateCommand, TaskRepository, UpdateResult } from './task.repository.js';
 import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
 
 
@@ -25,6 +25,14 @@ export class TaskService {
     create(input: CreateTaskInput) {
         // WHAT: Creation policy is deliberately small at this checkpoint.
         return this.repository.create(input);
+    }
+
+    // WHY: An idempotency key deduplicates retried commands after an unknown outcome.
+    async createIdempotent(command: IdempotentCreateCommand) {
+        const result = await this.repository.createIdempotent(command);
+        if (result.kind === 'conflict') throw new IdempotencyConflictError();
+        if (result.kind === 'replayed') return { statusCode: result.statusCode, body: result.body };
+        return { statusCode: 201, body: { data: result.task } };
     }
 
       async update(id: string, input: UpdateTaskInput) {

@@ -1,9 +1,24 @@
 // WHAT: Use a Router so task HTTP translation can be mounted and tested separately.
+import { createHash } from 'node:crypto';
 import { Router } from 'express';
 // BOUNDARY: HTTP may call service use cases but may not access a repository directly.
 import type { TaskService } from '../tasks/task.service.js';
 // BOUNDARY: Parse every untrusted parameter, query, and body before use.
-import { CompleteTaskSchema, CreateTaskSchema, ListTasksSchema, TaskIdSchema, UpdateTaskSchema } from '../tasks/task.schema.js';
+import {
+  CompleteTaskSchema,
+  CreateTaskSchema,
+  IdempotencyKeySchema,
+  ListTasksSchema,
+  TaskIdSchema,
+  UpdateTaskSchema,
+} from '../tasks/task.schema.js';
+import type { CreateTaskInput } from '../tasks/task.schema.js';
+
+// WHY: A canonical field order makes the hash stable regardless of object key order.
+function hashCreateTaskInput(input: CreateTaskInput): string {
+  const canonical = JSON.stringify([input.title, input.description ?? null, input.priority]);
+  return createHash('sha256').update(canonical).digest('hex');
+}
 
 export function createTasksRouter(service: TaskService) {
   const router = Router();
@@ -29,8 +44,23 @@ export function createTasksRouter(service: TaskService) {
   router.post('/', async (request, response) => {
     // BOUNDARY: Strip unknown input and apply domain defaults through Zod.
     const input = CreateTaskSchema.parse(request.body);
-    // WHAT: Creation returns 201 and the server-owned representation.
-    response.status(201).json({ data: await service.create(input) });
+    // BOUNDARY: An absent or invalid header means this call is not retried idempotently.
+    const idempotencyKey = IdempotencyKeySchema.safeParse(request.get('Idempotency-Key'));
+
+    if (!idempotencyKey.success) {
+      // WHAT: Creation returns 201 and the server-owned representation.
+      response.status(201).json({ data: await service.create(input) });
+      return;
+    }
+
+    // WHY: Replay the prior committed outcome instead of repeating an unknown-outcome retry.
+    const { statusCode, body } = await service.createIdempotent({
+      scope: 'POST /api/tasks',
+      key: idempotencyKey.data,
+      requestHash: hashCreateTaskInput(input),
+      input,
+    });
+    response.status(statusCode).json(body);
   });
 
   router.patch('/:id', async (request, response) => {

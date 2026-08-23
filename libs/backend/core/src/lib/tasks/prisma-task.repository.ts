@@ -1,6 +1,7 @@
 // WHAT: Import generated storage types from the persistence-owning library.
+// WHY: `Prisma` also carries the runtime error classes used below, so it is a value import.
+import { Prisma } from '../../generated/prisma/client.js';
 import type {
-  Prisma,
   PrismaClient,
   Task as PrismaTask,
 } from '../../generated/prisma/client.js';
@@ -10,7 +11,13 @@ import type {
   UpdateTaskInput,
 } from './task.schema.js';
 import { PrioritySchema } from './task.schema.js';
-import type { Task, TaskRepository, UpdateResult } from './task.repository.js';
+import type {
+  IdempotentCreateCommand,
+  IdempotentCreateResult,
+  Task,
+  TaskRepository,
+  UpdateResult,
+} from './task.repository.js';
 
 // BOUNDARY: Map storage values into the stable domain/API representation.
 function mapTask(row: PrismaTask): Task {
@@ -72,6 +79,49 @@ export class PrismaTaskRepository implements TaskRepository {
       },
     });
     return mapTask(row);
+  }
+
+  async createIdempotent({ scope, key, requestHash, input }: IdempotentCreateCommand): Promise<IdempotentCreateResult> {
+    try {
+      return await this.prisma.$transaction(async (transaction) => {
+        // WHY: Claim the key before doing any task work so a concurrent duplicate fails fast here.
+        await transaction.idempotencyRecord.create({
+          data: { scope, key, requestHash, status: 'pending', statusCode: 0, responseBody: {} },
+        });
+
+        const row = await transaction.task.create({
+          data: {
+            title: input.title,
+            description: input.description ?? null,
+            priority: input.priority,
+          },
+        });
+        const task = mapTask(row);
+        const body = { data: task };
+
+        // WHAT: Record the committed outcome in the same transaction that produced it.
+        await transaction.idempotencyRecord.update({
+          where: { scope_key: { scope, key } },
+          data: { status: 'completed', statusCode: 201, responseBody: body },
+        });
+
+        return { kind: 'created' as const, task };
+      });
+    } catch (error) {
+      // CHECK: Only a unique violation on the key means another request already claimed it.
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') throw error;
+
+      // WHY: Postgres blocks this insert until the other transaction commits, so this read is final.
+      const existing = await this.prisma.idempotencyRecord.findUniqueOrThrow({
+        where: { scope_key: { scope, key } },
+      });
+      if (existing.requestHash !== requestHash) return { kind: 'conflict' as const };
+      return {
+        kind: 'replayed' as const,
+        statusCode: existing.statusCode,
+        body: existing.responseBody,
+      };
+    }
   }
 
   async update(id: string, input: UpdateTaskInput): Promise<UpdateResult> {

@@ -9,5 +9,6 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Task.js'
+export type * from './models/IdempotencyRecord.js'
 export type * from './models/TaskEvent.js'
 export type * from './commonInputTypes.js'
