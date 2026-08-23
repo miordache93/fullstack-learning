@@ -256,6 +256,23 @@ Never create every `lesson/*` branch directly from `workshop/start`; that would 
 
 The topic chapters below contain the deep explanations and senior/expert extensions. For the first end-to-end implementation, use this build spine instead of reading Parts 1 and 2 top-to-bottom: **domain and service → HTTP API → shared UI and routing → Query and Zustand → Prisma → concurrency → Mongoose**. This prevents React from being built against imaginary endpoints and prevents either ORM from becoming the domain model.
 
+#### Mandatory navigation map
+
+Do not execute the branch blocks below as one uninterrupted top-to-bottom sequence. PostgreSQL and MongoDB Compose are infrastructure interludes whose full lessons live in later topic chapters. Follow this exact cumulative order:
+
+| Order | Work to complete                                                                                                                | Return point         |
+| ----: | ------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+|     1 | Prove the starter with Lessons 0.1–0.2                                                                                          | Branch 01            |
+|     2 | Complete Branches 01–04 with the in-memory repository                                                                           | PostgreSQL interlude |
+|     3 | Complete [Lesson 0.3A–0.3C](#lesson-03-compose) and create the PostgreSQL-only `compose.yaml`                                   | Branch 05            |
+|     4 | Complete Branch 05, then return to [Lesson 0.3D–0.3E](#exercise-03d--apply-schema-from-the-host)                                | Branch 06            |
+|     5 | Complete Branch 06                                                                                                              | MongoDB interlude    |
+|     6 | Complete [Lesson 3B.0A–3B.0C](#lesson-3b0-mongodb-compose) and extend the same `compose.yaml` with `mongodb` plus `mongo-setup` | Branch 07            |
+|     7 | Complete Branch 07, then return to [Lesson 3B.0D](#exercise-3b0d--connect-the-host-api-without-containerizing-it)               | Branch 08            |
+|     8 | Complete Branch 08, followed by the Docker, complete-Compose, CI/CD, and AWS branches                                           | End-to-end runtime   |
+
+At the PostgreSQL interlude, Compose runs only `database`; the application still runs on the host. At the MongoDB interlude, Compose adds `mongodb` and a finite `mongo-setup` job; both APIs still run on the host. The `api`, `api-mongo`, and `web` Compose services appear only after you author the application Docker images in Part 4.
+
 Each file block is a checkpoint, not a repository answer. Create the named file, type the block, run its focused check, and make the named change yourself before moving on. Most meaningful statements are deliberately commented here; after the summit, remove comments that only restate syntax and keep comments that defend boundaries or invariants.
 
 #### Branch 01 — Build the domain contract without a database
@@ -1499,7 +1516,7 @@ Branch 04 exit check: a browser action crosses Vite → Express → Zod → serv
 
 #### Branch 05 — Replace memory with Prisma/PostgreSQL behind the same port
 
-Create `lesson/05-postgres-prisma` from Branch 04. Complete Lesson 0.3A–0.3C first so your own `database` Compose service is healthy and persistent. The public routes, service, and React code do not change in this branch; only process composition and persistence do.
+Create `lesson/05-postgres-prisma` from Branch 04. **Stop before editing Branch 05 and complete [Lesson 0.3A–0.3C](#lesson-03-compose) first.** Those exercises create your PostgreSQL-only `compose.yaml` and prove health plus persistence. Do not run 0.3D–0.3E yet because their Prisma files are created in this branch. Then return here; the public routes, service, and React code do not change—only process composition and persistence do.
 
 Declare the runtime packages imported by the backend library:
 
@@ -2089,6 +2106,8 @@ curl -i http://localhost:3000/api/health/ready
 
 Core exercise: create the same task before and after an API restart and prove PostgreSQL preserves it. Then execute the parameterized `selectRecentOpenTasks` selector, capture `EXPLAIN (ANALYZE, BUFFERS)`, and explain why ordinary CRUD stays in Prisma while measured PostgreSQL-specific work may use SQL.
 
+Before the Branch 05 exit check, return to [Lesson 0.3D–0.3E](#exercise-03d--apply-schema-from-the-host). Apply the Prisma migration/seed to the Compose database and prove liveness versus readiness when PostgreSQL stops, then come back here.
+
 Branch 05 exit check: browser and HTTP contracts are unchanged, Prisma CRUD passes the repository contract suite, generated types never cross the repository, data survives API replacement, invalid `DATABASE_URL` fails before `listen`, and shutdown releases the pool.
 
 Mixed frontend continuation — finish the virtualization requirement before Branch 06. First render 10,000 ordinary rows in `performance-page.tsx`, record DOM node count and React Profiler commit time, and only then declare the virtualization package:
@@ -2272,7 +2291,7 @@ Branch 06 exit check: ten repeated two-client races always produce one success, 
 
 #### Branch 07 — Add Mongoose/MongoDB without changing the use case
 
-Create `lesson/07-mongodb-mongoose` from Branch 06. Complete Lesson 3B.0 first, including the learner-authored MongoDB service and replica-set setup. Transactions require a replica set even when the lab has only one member.
+Create `lesson/07-mongodb-mongoose` from Branch 06. **Stop before editing Branch 07 and complete only [Lesson 3B.0A–3B.0C](#lesson-3b0-mongodb-compose).** Those exercises add `mongodb` and `mongo-setup` to your existing Compose file and initialize the one-member replica set. Do not run 3B.0D yet because it requires the Mongoose adapter you are about to implement here. Transactions require a replica set even when the lab has only one member.
 
 Declare Mongoose at the backend project boundary and extend `.env.example`:
 
@@ -2612,6 +2631,8 @@ export async function selectRecentOpenTasksWithMongoDriver(connection: Connectio
 ```
 
 Export it from the backend index, then compare `.explain('executionStats')` before and after the compound index. This is the MongoDB equivalent of a deliberate raw SQL escape hatch—not a reason to bypass Mongoose everywhere.
+
+After implementing the Mongoose adapter, return to [Lesson 3B.0D](#exercise-3b0d--connect-the-host-api-without-containerizing-it). Run the Mongoose-backed API on host port 3001 against the Compose MongoDB member, then return here. Do not add `api-mongo` to Compose until Lesson 4.3D, after the API image exists.
 
 Branch 07 exit check: switching only `DATABASE_CLIENT` and its URL preserves HTTP contract, version conflict, task-plus-event rollback, list order, and tests; readiness names the selected adapter; Mongoose types never reach the service or React app; engine-specific query plans remain in adapter/native-selector lessons.
 
@@ -3181,6 +3202,8 @@ Additional exercises:
 
 Exit check: provide the starter web screenshot, successful `GET /api`, expected task 404, and a clean `npm run check`.
 
+<a id="lesson-03-compose"></a>
+
 ### Lesson 0.3 — Build the PostgreSQL Compose service from an empty file
 
 Outcome: create the first infrastructure dependency yourself and understand every line that changes its lifecycle, reachability, health, and persistence. Start with a genuinely new file and do not jump forward to the Part 4 service snippets until this lesson's exit check passes.
@@ -3338,9 +3361,11 @@ docker compose up database -d
 
 `--volumes` is a disposable-development reset, never a production migration or recovery strategy.
 
+<a id="exercise-03d--apply-schema-from-the-host"></a>
+
 #### Exercise 0.3D — Apply schema from the host
 
-This is a deferred checkpoint. On `workshop/start`, Prisma configuration, schema, migration history, and seed are intentionally absent. Complete Lesson 2.4 first, then return here and run:
+This is a deferred checkpoint. On `workshop/start`, Prisma configuration, schema, migration history, and seed are intentionally absent. Complete Branch 05 through the Prisma schema, migration, client generation, and seed exercises first, then return here and run:
 
 ```bash
 # WHAT: Regenerate the typed client after checking out or changing the Prisma schema.
@@ -3355,11 +3380,11 @@ docker compose exec database psql -U app -d learning -c \
 docker compose exec database psql -U app -d learning -c 'select count(*) from tasks;'
 ```
 
-Before Lesson 2.4, these commands should fail because the files do not exist; that is intentional. After creating them, if an earlier experiment created objects without migration history, do not mark migrations as applied merely to silence an error. Reset only disposable data. Otherwise back up, introspect and compare the schema, review the baseline, and use `prisma migrate resolve` only after proving the database already matches that migration.
+Before Branch 05, these commands should fail because the files do not exist; that is intentional. After creating them, if an earlier experiment created objects without migration history, do not mark migrations as applied merely to silence an error. Reset only disposable data. Otherwise back up, introspect and compare the schema, review the baseline, and use `prisma migrate resolve` only after proving the database already matches that migration.
 
 #### Exercise 0.3E — Close the host-to-container loop
 
-This is also deferred until Lesson 2.4 replaces the in-memory adapter with Prisma. Keep both apps on the host and point the API at the published PostgreSQL port:
+This is also deferred until Branch 05 replaces the in-memory adapter with Prisma. Keep both apps on the host and point the API at the published PostgreSQL port:
 
 ```bash
 # CHECK: Readiness should now cross the driver pool and PostgreSQL successfully.
@@ -4913,6 +4938,8 @@ Exit check: write the exact restore owner, frequency, target account/region, val
 
 Complete the PostgreSQL lessons first. These labs are comparative: implement the same product contract in a document database, identify where the guarantees align, and keep engine-specific capabilities explicit. Do not translate SQL syntax word-for-word or conclude that one database is universally better.
 
+<a id="lesson-3b0-mongodb-compose"></a>
+
 ### Lesson 3B.0 — Extend your Compose file with a MongoDB replica-set profile
 
 Outcome: add MongoDB to the `compose.yaml` you created in Lesson 0.3 without starting it for PostgreSQL-only work. Build topology setup explicitly rather than receiving a finished replica set.
@@ -5110,9 +5137,11 @@ docker compose --profile mongodb exec mongodb \
   mongosh --quiet --eval 'const h=db.adminCommand({hello:1}); printjson({setName:h.setName,isWritablePrimary:h.isWritablePrimary})'
 ```
 
+<a id="exercise-3b0d--connect-the-host-api-without-containerizing-it"></a>
+
 #### Exercise 3B.0D — Connect the host API without containerizing it
 
-Run the alternative composition on a different host port:
+This is a deferred checkpoint. Complete Branch 07 after exercises 3B.0A–3B.0C, then return here: the Mongoose adapter must exist before this process can start. Run the alternative composition on a different host port:
 
 ```bash
 # BOUNDARY: Select Mongoose only at process composition; routes and services stay unchanged.

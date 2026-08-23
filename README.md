@@ -48,6 +48,15 @@ workshop/start
 
 For example, `lesson/06-concurrency-transactions` includes the complete implementation from lessons 01–05 and adds only its own increment. The preserved local `solution/reference` branch keeps the facilitator implementation for recovery; avoid reading it until you have attempted the relevant exit check.
 
+Database infrastructure is written by you in two deliberate interludes rather than appearing as a finished answer:
+
+1. After Branch 04, complete Tutorial exercises 0.3A–0.3C to create the PostgreSQL-only `compose.yaml`.
+2. Complete Branch 05, then return to 0.3D–0.3E to migrate, seed, and test PostgreSQL.
+3. After Branch 06, complete 3B.0A–3B.0C to add `mongodb` and the idempotent `mongo-setup` job.
+4. Complete Branch 07, then return to 3B.0D to run the host Mongoose API. Add application containers only after writing their Dockerfiles in Part 4.
+
+The tutorial's “Mandatory navigation map” contains direct links for every jump and return.
+
 ## Files you will create
 
 ```text
