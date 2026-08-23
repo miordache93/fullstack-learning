@@ -2,12 +2,24 @@ import { randomUUID } from 'node:crypto';
 import type { ClientSession, Connection, QueryFilter } from 'mongoose';
 import type { CreateTaskInput, ListTasksInput, UpdateTaskInput } from './task.schema.js';
 import { PrioritySchema } from './task.schema.js';
-import type { Task, TaskRepository, UpdateResult } from './task.repository.js';
+import type {
+  IdempotentCreateCommand,
+  IdempotentCreateResult,
+  Task,
+  TaskRepository,
+  UpdateResult,
+} from './task.repository.js';
 import type { MongoModels, MongoTaskRecord } from './mongoose.models.js';
 
 // SECURITY: Make user text literal before placing it in a regular expression.
 function escapeRegularExpression(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// CHECK: MongoDB reports a unique-index violation with error code 11000, sometimes nested under a bulk write error.
+function isDuplicateKeyError(error: unknown): boolean {
+  const candidate = error as { code?: unknown; writeErrors?: Array<{ code?: unknown }> } | null;
+  return candidate?.code === 11000 || candidate?.writeErrors?.[0]?.code === 11000;
 }
 
 // BOUNDARY: Translate `_id` and BSON dates into the stable domain representation.
@@ -57,6 +69,47 @@ export class MongooseTaskRepository implements TaskRepository {
       priority: input.priority,
     });
     return mapTask(row.toObject());
+  }
+
+  async createIdempotent({ scope, key, requestHash, input }: IdempotentCreateCommand): Promise<IdempotentCreateResult> {
+    // WHY: Default to `conflict` so a `throw` inside the transaction never leaves this unset.
+    let result: IdempotentCreateResult = { kind: 'conflict' };
+    try {
+      // BOUNDARY: The replica-set transaction keeps the key claim and task creation atomic.
+      await this.connection.transaction(async (session) => {
+        // WHY: Claim the key before doing any task work so a concurrent duplicate fails fast here.
+        await this.models.IdempotencyRecord.create(
+          [{ scope, key, requestHash, status: 'pending', statusCode: 0, responseBody: {} }],
+          { session },
+        );
+
+        const [row] = await this.models.Task.create(
+          [{ _id: randomUUID(), title: input.title, description: input.description ?? null, priority: input.priority }],
+          { session },
+        );
+        const task = mapTask(row.toObject());
+        const body = { data: task };
+
+        // WHAT: Record the committed outcome in the same transaction that produced it.
+        await this.models.IdempotencyRecord.updateOne(
+          { scope, key },
+          { $set: { status: 'completed', statusCode: 201, responseBody: body } },
+          { session },
+        );
+
+        result = { kind: 'created', task };
+      });
+    } catch (error) {
+      // CHECK: Only a duplicate-key violation on the key means another request already claimed it.
+      if (!isDuplicateKeyError(error)) throw error;
+
+      // WHY: MongoDB blocks this insert until the other transaction commits, so this read is final.
+      const existing = await this.models.IdempotencyRecord.findOne({ scope, key }).lean().exec();
+      if (!existing) throw error;
+      if (existing.requestHash !== requestHash) return { kind: 'conflict' };
+      return { kind: 'replayed', statusCode: existing.statusCode, body: existing.responseBody };
+    }
+    return result;
   }
 
   async update(id: string, input: UpdateTaskInput): Promise<UpdateResult> {

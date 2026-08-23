@@ -22,9 +22,21 @@ export type MongoTaskEventRecord = {
   createdAt: Date;
 };
 
+// WHAT: Deduplicate a retried command whose prior outcome the caller never observed.
+export type MongoIdempotencyRecord = {
+  scope: string;
+  key: string;
+  requestHash: string;
+  status: 'pending' | 'completed';
+  statusCode: number;
+  responseBody: unknown;
+  createdAt: Date;
+};
+
 export type MongoModels = {
   Task: Model<MongoTaskRecord>;
   TaskEvent: Model<MongoTaskEventRecord>;
+  IdempotencyRecord: Model<MongoIdempotencyRecord>;
 };
 
 const taskSchema = new Schema<MongoTaskRecord>(
@@ -84,6 +96,27 @@ const taskEventSchema = new Schema<MongoTaskEventRecord>(
 // WHY: Match newest-first history lookup for one task.
 taskEventSchema.index({ taskId: 1, createdAt: -1 });
 
+const idempotencyRecordSchema = new Schema<MongoIdempotencyRecord>(
+  {
+    scope: { type: String, required: true, maxlength: 100 },
+    key: { type: String, required: true, maxlength: 200 },
+    requestHash: { type: String, required: true, maxlength: 64 },
+    status: { type: String, required: true, enum: ['pending', 'completed'], default: 'pending' },
+    statusCode: { type: Number, required: true },
+    responseBody: { type: Schema.Types.Mixed, required: true },
+  },
+  {
+    // WHAT: A record needs a creation time but no meaningful update time.
+    timestamps: { createdAt: true, updatedAt: false },
+    versionKey: false,
+    bufferCommands: false,
+    collection: 'idempotency_records',
+  },
+);
+
+// WHY: One caller-chosen key can only ever mean one command per scope.
+idempotencyRecordSchema.index({ scope: 1, key: 1 }, { unique: true });
+
 export function createMongoModels(connection: Connection): MongoModels {
   return {
     // WHAT: Bind both models to the lifecycle-owned connection.
@@ -91,6 +124,10 @@ export function createMongoModels(connection: Connection): MongoModels {
     TaskEvent: connection.model<MongoTaskEventRecord>(
       'TaskEvent',
       taskEventSchema,
+    ),
+    IdempotencyRecord: connection.model<MongoIdempotencyRecord>(
+      'IdempotencyRecord',
+      idempotencyRecordSchema,
     ),
   };
 }
