@@ -24,8 +24,26 @@ model Task {
   version     Int      @default(1)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  // WHAT: Express ownership so Prisma can navigate the task's transition records.
+  events TaskEvent[]
 
   // WHY: Match the deterministic newest-first API access path.
   @@index([createdAt(sort: Desc), id], map: "idx_tasks_created_at")
   @@map("tasks")
+}
+
+// WHAT: Preserve transition evidence separately from the current task projection.
+model TaskEvent {
+  // WHAT: Use an efficient database-native sequence for internal event identity.
+  id        BigInt   @id @default(autoincrement())
+  taskId    String   @map("task_id") @db.Uuid
+  eventType String   @map("event_type") @db.VarChar(50)
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  // INVARIANT: An event cannot outlive the task whose history it describes.
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // WHY: Match newest-first event-history reads for one task.
+  @@index([taskId, createdAt(sort: Desc)], map: "idx_task_events_task_created")
+  @@map("task_events")
 }

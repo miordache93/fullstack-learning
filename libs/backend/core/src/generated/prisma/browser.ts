@@ -22,3 +22,8 @@ export * from './enums.js';
  * 
  */
 export type Task = Prisma.TaskModel
+/**
+ * Model TaskEvent
+ * 
+ */
+export type TaskEvent = Prisma.TaskEventModel

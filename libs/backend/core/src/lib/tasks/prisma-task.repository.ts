@@ -95,9 +95,37 @@ export class PrismaTaskRepository implements TaskRepository {
     });
   }
 
-  async complete(id: string, version: number) {
-    // WHAT: Reuse version-aware update until Branch 06 adds an atomic event record.
-    return this.update(id, { done: true, version });
+  async complete(id: string, version: number): Promise<UpdateResult> {
+    // BOUNDARY: Prisma keeps every callback operation on one transaction connection.
+    return this.prisma.$transaction(async (transaction) => {
+      // WHAT: Match identity and the exact version observed by the caller.
+      const updated = await transaction.task.updateMany({
+        where: { id, version },
+        data: {
+          done: true,
+          // WHY: Advance the compare-and-swap token with the state transition.
+          version: { increment: 1 },
+          updatedAt: new Date(),
+        },
+      });
+
+      // CHECK: Classify missing versus stale without inserting an event.
+      if (updated.count === 0) return this.classifyMiss(transaction, id);
+
+      // WHAT: Record the event only after this transaction owns the transition.
+      await transaction.taskEvent.create({
+        data: {
+          taskId: id,
+          eventType: 'completed',
+          // WHY: Preserve the token that authorized this transition for later diagnosis.
+          payload: { previousVersion: version },
+        },
+      });
+
+      // CHECK: Read the representation that will be returned before committing.
+      const row = await transaction.task.findUniqueOrThrow({ where: { id } });
+      return { kind: 'updated' as const, task: mapTask(row) };
+    });
   }
 
   async delete(id: string) {
