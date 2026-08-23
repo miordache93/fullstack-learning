@@ -1,9 +1,13 @@
-import type { AppConfig } from '../config.js';
-import type { PersistenceAdapter } from './persistence.js';
+import { AppConfig } from '../config.js';
+import { MongoosePersistenceAdapter } from './mongoose-persistence.adapter.js';
+import { PersistenceAdapter } from './persistence.js';
 import { PrismaPersistenceAdapter } from './prisma-persistence.adapter.js';
 
-// BOUNDARY: Keep infrastructure selection in one outer factory from the beginning.
-export function createPersistence(config: Omit<AppConfig, 'host'| 'port'>): PersistenceAdapter {
-  // WHY: Branch 05 has one honest implementation; Branch 07 adds the second case here.
+export function createPersistence(config: AppConfig): PersistenceAdapter {
+  // BOUNDARY: This is the only database-client conditional in the application.
+  if (config.databaseClient === 'mongoose') {
+    return new MongoosePersistenceAdapter(config);
+  }
+  // WHY: Prisma/PostgreSQL remains the default documented path.
   return new PrismaPersistenceAdapter(config);
 }

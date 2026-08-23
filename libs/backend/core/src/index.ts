@@ -7,3 +7,6 @@ export * from './lib/persistence/prisma-persistence.adapter.js';
 export * from './lib/tasks/plain-sql.selectors.js';
 export * from './lib/tasks/prisma-task.repository.js';
 export * from './lib/tasks/task.service.js';
+export * from './lib/persistence/mongoose-persistence.adapter.js';
+export * from './lib/tasks/mongoose-task.repository.js';
+export * from './lib/tasks/mongoose.models.js';
