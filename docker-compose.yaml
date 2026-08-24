@@ -1,6 +1,52 @@
 # WHAT: Declare the processes that form this local environment.
 services:
   # WHAT: Give PostgreSQL the stable DNS and service identity `database`.
+    # WHAT: Provide the optional document database used by the Mongoose lessons.
+  mongodb:
+    # WHY: Do not start MongoDB during PostgreSQL-only work.
+    profiles: ['mongodb']
+    # WHY: Pin the server major used by the compatibility exercises.
+    image: mongo:8.0
+    # WHAT: Enable the replica-set APIs required by transactions and change streams.
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    # BOUNDARY: Publish only while the Mongoose API and shell run on the host.
+    ports:
+      - '27017:27017'
+    # CHECK: Prove the server accepts commands before administrative setup runs.
+    healthcheck:
+      # WHAT: Execute a cheap ping with the shell included in the image.
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      # WHY: Give startup enough time without hiding a failure for minutes.
+      interval: 5s
+      # WHY: Bound each shell attempt.
+      timeout: 3s
+      # WHY: First initialization can be slower than a warm restart.
+      retries: 20
+    # WHY: Preserve document data when the current container is replaced.
+    volumes:
+      - mongo-data:/data/db
+  # WHAT: Initialize replica topology as a finite, observable operation.
+  mongo-setup:
+    # WHY: Setup belongs to the same optional path as MongoDB.
+    profiles: ['mongodb']
+    # WHAT: Reuse the matching image so `mongosh` is available.
+    image: mongo:8.0
+    # WHAT: Run your script against the member before replica discovery is ready.
+    command:
+      - mongosh
+      - mongodb://mongodb:27017/admin?directConnection=true
+      - --quiet
+      - --file
+      - /setup/init-replica-and-indexes.js
+    # BOUNDARY: Make administrative source readable but not writable.
+    volumes:
+      - ./infra/mongodb:/setup:ro
+    # WHY: Do not run topology commands before MongoDB accepts commands.
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    # WHY: Exit zero is successful finite work, not a process to restart.
+    restart: 'no'
   database:
     # WHY: Pin the database major instead of accepting a moving `latest` tag.
     image: postgres:18-alpine
@@ -33,3 +79,5 @@ services:
 volumes:
   # WHAT: Let Compose create and consistently reuse this project-scoped volume.
   postgres-data:
+    # WHAT: Declare MongoDB state independently of the container lifecycle.
+  mongo-data:

@@ -16,9 +16,10 @@ async function bootstrap() {
   let persistence: PersistenceAdapter | undefined;
   try {
     // BOUNDARY: Parse configuration before constructing any resource or accepting traffic.
-    const { port, host, ...rest } = loadConfig();
+    const config = loadConfig();
+    const { host, port } = config;
     // BOUNDARY: Select the concrete database implementation in exactly one place.
-    persistence = createPersistence(rest);
+    persistence = createPersistence(config);
     // CHECK: Fail startup if the selected database cannot be reached.
     await persistence.connect();
     // BOUNDARY: Domain policy sees the repository port, never PrismaClient.
