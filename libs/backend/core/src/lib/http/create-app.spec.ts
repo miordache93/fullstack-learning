@@ -4,17 +4,29 @@ import { describe, expect, it } from 'vitest';
 import { InMemoryTaskRepository } from '../tasks/in-memory-task.repository.js';
 import { TaskService } from '../tasks/task.service.js';
 import { createApp } from './create-app.js';
+import { AppConfig } from '../config.js';
 
 // WHAT: Compose the same layers as production with an isolated in-memory adapter.
 function setup() {
-  // WHAT: Use real domain/in-memory behavior for HTTP contract tests.
   const taskService = new TaskService(new InMemoryTaskRepository());
-  // BOUNDARY: Stub only the external lifecycle capability this test does not own.
+  // WHAT: Supply a complete, deterministic process configuration for composition tests.
+  const config: AppConfig = {
+    nodeEnv: 'test',
+    host: 'localhost',
+    port: 3000,
+    databaseClient: 'prisma',
+    databaseUrl: 'postgresql://unused:unused@localhost:5432/unused',
+    mongodbUrl: 'mongodb://localhost:27017/unused',
+    databasePoolMax: 1,
+    corsOrigins: ['http://localhost:4200'],
+    awsRegion: 'eu-central-1',
+    // CHECK: Omitted API key and bucket keep auth disabled and uploads unconfigured.
+  };
   const persistence = {
     kind: 'postgresql-prisma' as const,
     checkReadiness: async () => undefined,
   };
-  return createApp({ taskService, persistence });
+  return createApp({ config, persistence, taskService });
 }
 
 describe('task HTTP contract', () => {

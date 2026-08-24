@@ -25,7 +25,7 @@ async function bootstrap() {
     // BOUNDARY: Domain policy sees the repository port, never PrismaClient.
     const taskService = new TaskService(persistence.tasks);
     // WHAT: Compose the HTTP graph after its dependencies are ready.
-    const app = createApp({ taskService, persistence });
+    const app = createApp({config, taskService, persistence });
     // WHAT: Begin opening the socket only after configuration and connectivity pass.
     const server = app.listen(port, host);
     // CHECK: Reject this await on asynchronous socket errors such as EADDRINUSE.
